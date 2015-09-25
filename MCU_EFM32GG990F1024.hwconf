@@ -27,14 +27,32 @@
     <property object="PB10" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PB13" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PB14" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB15" propertyId="ports.settings.custompinname" value="VGA_HSYNC"/>
+    <property object="PB15" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PB2" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PB3" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB5" propertyId="ports.settings.custompinname" value="CAM1_GPIO"/>
+    <property object="PB5" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PB6" propertyId="ports.settings.custompinname" value="CAM1_CLK"/>
+    <property object="PB6" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PB7" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PB8" propertyId="ports.settings.pinmode" value="Input"/>
     <property object="PB9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC0" propertyId="ports.settings.custompinname" value="CAM1_DN0"/>
     <property object="PC0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC0" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PC1" propertyId="ports.settings.custompinname" value="CAM_DP0"/>
     <property object="PC1" propertyId="ports.settings.pinmode" value="Input"/>
+    <property object="PC1" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PC10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC2" propertyId="ports.settings.custompinname" value="CAM1_DN1"/>
+    <property object="PC2" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PC3" propertyId="ports.settings.custompinname" value="CAM_DP1"/>
+    <property object="PC3" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PC4" propertyId="ports.settings.custompinname" value="CAM_CN"/>
+    <property object="PC4" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PC5" propertyId="ports.settings.custompinname" value="CAM_CP"/>
+    <property object="PC5" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PC6" propertyId="ports.settings.custompinname" value=""/>
     <property object="PC6" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PC7" propertyId="ports.settings.pinmode" value="Push-pull"/>
@@ -43,10 +61,24 @@
     <property object="PD0" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PD1" propertyId="ports.settings.pinmode" value="Input"/>
     <property object="PD10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD11" propertyId="ports.settings.custompinname" value="VGA_R0"/>
+    <property object="PD11" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PD12" propertyId="ports.settings.custompinname" value="VGA_R1"/>
+    <property object="PD12" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PD13" propertyId="ports.settings.custompinname" value="VGA_R2"/>
+    <property object="PD13" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PD14" propertyId="ports.settings.pinmode" value="Wired-and pullup filter"/>
     <property object="PD15" propertyId="ports.settings.pinmode" value="Wired-and pullup filter"/>
     <property object="PD2" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PD3" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD5" propertyId="ports.settings.custompinname" value="BUTN_UP"/>
+    <property object="PD5" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PD6" propertyId="ports.settings.custompinname" value="BUTN_DOWN"/>
+    <property object="PD6" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PD7" propertyId="ports.settings.custompinname" value="BUTN_OK"/>
+    <property object="PD7" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PD8" propertyId="ports.settings.custompinname" value="BUTN_BACK"/>
+    <property object="PD8" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PD9" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PE0" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PE1" propertyId="ports.settings.pinmode" value="Push-pull"/>
@@ -62,7 +94,21 @@
     <property object="PE7" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PE8" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PE9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PF10" propertyId="ports.settings.custompinname" value="VGA_B0"/>
+    <property object="PF10" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF11" propertyId="ports.settings.custompinname" value="VGA_B1"/>
+    <property object="PF11" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF12" propertyId="ports.settings.custompinname" value="VGA_B2"/>
+    <property object="PF12" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF2" propertyId="ports.settings.custompinname" value="VGA_VSYNC"/>
+    <property object="PF2" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF5" propertyId="ports.settings.custompinname" value="VGA_G0"/>
     <property object="PF5" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PF5" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF6" propertyId="ports.settings.custompinname" value="VGA_G1"/>
+    <property object="PF6" propertyId="ports.settings.reserve" value="Reserved"/>
+    <property object="PF7" propertyId="ports.settings.custompinname" value="VGA_G2"/>
+    <property object="PF7" propertyId="ports.settings.reserve" value="Reserved"/>
     <property object="PF8" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PF9" propertyId="ports.settings.pinmode" value="Push-pull"/>
     <property object="PORTIO" propertyId="portio.ebi.enable.a00" value="Enabled"/>
