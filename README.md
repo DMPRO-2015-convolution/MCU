@@ -1,2 +1,3 @@
 # MCU
-EFM32GG Software
+
+Use SimplicityStudio to open project.

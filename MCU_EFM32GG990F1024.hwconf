@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="ASCII"?>
+<device:XMLDevice xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:device="http://www.silabs.com/sls/hc/document/device.ecore" name="EFM32GG990F1024" partId="com.silabs.mcu.si32.efm32.efm32gg.efm32gg990f1024">
+  <mode name="DefaultMode">
+    <property object="DefaultMode" propertyId="mode.diagramLocation" value="100, 100"/>
+    <property object="EBI" propertyId="ABPeripheral.included" value="true"/>
+    <property object="EBI" propertyId="ebi.outputsettings.dataformat" value="16 bits data, separate address on A[x] pins"/>
+    <property object="EBI" propertyId="ebi.outputsettings.enablebank1" value="Enabled"/>
+    <property object="EBI" propertyId="ebi.outputsettings.enablepincs1" value="Enabled"/>
+    <property object="EBI" propertyId="ebi.outputsettings.upperaddresspinboundary" value="Enable A19 down to lower boundary"/>
+    <property object="GPIO" propertyId="ABPeripheral.included" value="true"/>
+    <property object="I2C0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="OPAMP0" propertyId="opamp.settings.output" value="Main to pin"/>
+    <property object="OPAMP1" propertyId="opamp.settings.output" value="Main to pin"/>
+    <property object="PA0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA1" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA12" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA13" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA14" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA15" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA2" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA3" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA4" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA5" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PA6" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB1" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB13" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB14" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB2" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB3" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB7" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PB8" propertyId="ports.settings.pinmode" value="Input"/>
+    <property object="PB9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC1" propertyId="ports.settings.pinmode" value="Input"/>
+    <property object="PC10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC6" propertyId="ports.settings.custompinname" value=""/>
+    <property object="PC6" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC7" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC8" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PC9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD1" propertyId="ports.settings.pinmode" value="Input"/>
+    <property object="PD10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD14" propertyId="ports.settings.pinmode" value="Wired-and pullup filter"/>
+    <property object="PD15" propertyId="ports.settings.pinmode" value="Wired-and pullup filter"/>
+    <property object="PD2" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD3" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PD9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE0" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE1" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE10" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE11" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE12" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE13" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE14" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE15" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE4" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE5" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE6" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE7" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE8" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PE9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PF5" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PF8" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PF9" propertyId="ports.settings.pinmode" value="Push-pull"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a00" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a01" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a02" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a03" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a04" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a05" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a06" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a07" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a08" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a09" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a10" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a11" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a12" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a13" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a14" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a15" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a16" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a17" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a18" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.a19" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad00" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad01" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad02" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad03" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad04" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad05" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad06" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad07" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad08" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad09" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad10" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad11" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad12" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad13" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad14" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ad15" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.cs0" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.cs1" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.ren" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.enable.wen" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.ebi.location.ebi" value="1"/>
+    <property object="PORTIO" propertyId="portio.i2c0.enable.scl" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.i2c0.enable.sda" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.i2c0.location.i2c0" value="3"/>
+    <property object="PORTIO" propertyId="portio.usart0.enable.clk" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart0.enable.cs" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart0.enable.rx" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart0.enable.tx" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart0.location.usart0" value="4"/>
+    <property object="PORTIO" propertyId="portio.usart1.enable.clk" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart1.enable.cs" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart1.enable.rx" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart1.enable.tx" value="Enabled"/>
+    <property object="PORTIO" propertyId="portio.usart1.location.usart1" value="1"/>
+    <property object="USART0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="USART0" propertyId="usart.mode.usartmode" value="Synchronous Mode (SPI / I2S)"/>
+    <property object="USART1" propertyId="ABPeripheral.included" value="true"/>
+    <property object="USART1" propertyId="usart.mode.usartmode" value="Synchronous Mode (SPI / I2S)"/>
+  </mode>
+  <modeTransition>
+    <property object="RESET &#x2192; DefaultMode" propertyId="modeTransition.target" value="DefaultMode"/>
+    <property object="RESET &#x2192; DefaultMode" propertyId="modeTransition.source" value="RESET"/>
+  </modeTransition>
+</device:XMLDevice>
