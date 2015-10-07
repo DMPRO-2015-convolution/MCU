@@ -26,9 +26,11 @@ int main(void)
 {
 
 
-	//
+	// Initialize FatFS and MicroSD
 	init_filesystem();
 
+	// Initialize FPGA flash module
+	init_fpgaflash();
 
 	/* Infinite loop */
 	while (1) {
