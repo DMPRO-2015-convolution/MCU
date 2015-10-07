@@ -17,8 +17,15 @@
 #include "em_device.h"
 #include "em_chip.h"
 
+
+#include "bsp.h"
+#include "bsp_trace.h"
+
+
 #include "filesystem.h"
 #include "fpgaflash.h"
+
+#include "test.h"
 
 /**************************************************************************//**
  * @brief  Main function
@@ -26,15 +33,46 @@
 int main(void)
 {
 
+	/* Use 32MHZ HFXO as core clock frequency */
+	//CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+
+	//
+	// TODO Temp for testing on BSP, separate init for mcu needed
+	//
+	/* Initialize DK board register access */
+	BSP_Init(BSP_INIT_DEFAULT);
+	/* If first word of user data page is non-zero, enable eA Profiler trace */
+	BSP_TraceProfilerSetup();
+	/* Test leds */
+	BSP_LedsSet(0x1);
+	/* Enable SPI access to MicroSD card */
+	BSP_PeripheralAccess(BSP_MICROSD, true);
+	//
+	//
+	//
+
+
+
 	// Initialize FatFS and MicroSD
 	init_filesystem();
 
 	// Initialize FPGA flash module
 	init_fpgaflash();
 
-	/* Infinite loop */
+
+
+	// Test components
+	test_filesystem();
+
+
+
+
 	while (1) {
+
 	}
+
+
+
 }
 
 
