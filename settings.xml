@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="C Source File">
+<includepath>${StudioSdkPath}/kits/EFM32GG_DK3750/config</includepath>
+<includepath>${StudioSdkPath}/kits/common/drivers</includepath>
+<includepath>${StudioSdkPath}/CMSIS/Include</includepath>
+<includepath>${StudioSdkPath}/emlib/inc</includepath>
+<includepath>${StudioSdkPath}/kits/common/bsp</includepath>
+<includepath>${StudioSdkPath}/Device/SiliconLabs/EFM32GG/Include</includepath>
+<includepath>${StudioSdkPath}/reptile/fatfs/inc</includepath>
+<includepath workspace_path="true">/MCU/inc</includepath>
+
+</language>
+<language name="Assembly Source File">
+<includepath>${StudioSdkPath}/kits/EFM32GG_DK3750/config</includepath>
+<includepath>${StudioSdkPath}/kits/common/drivers</includepath>
+<includepath>${StudioSdkPath}/CMSIS/Include</includepath>
+<includepath>${StudioSdkPath}/emlib/inc</includepath>
+<includepath>${StudioSdkPath}/kits/common/bsp</includepath>
+<includepath>${StudioSdkPath}/Device/SiliconLabs/EFM32GG/Include</includepath>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="C Source File">
+<macro>
+<name>EFM32GG990F1024</name><value>1</value>
+</macro>
+
+</language>
+<language name="Assembly Source File">
+<macro>
+<name>EFM32GG990F1024</name><value>1</value>
+</macro>
+
+</language>
+<language name="Object File">
+
+</language>
+</section>
+</cdtprojectproperties>
