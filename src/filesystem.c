@@ -62,8 +62,8 @@ extern void open_file(FIL *file, char *filename) {
 }
 
 
-extern void read_file(FIL *file, uint8_t *buffer, UINT bufferSize, UINT *bytesRead) {
-	if (f_read(file, buffer, bufferSize, bytesRead) != FR_OK) {
+extern void read_file(FIL *file, void *buffer, UINT bytesToRead, UINT *bytesRead) {
+	if (f_read(file, buffer, bytesToRead, bytesRead) != FR_OK) {
 		/* Could not read file */
 		while (1);
 	}
