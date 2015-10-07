@@ -18,13 +18,13 @@
 #include "em_chip.h"
 
 #include "filesystem.h"
+#include "fpgaflash.h"
 
 /**************************************************************************//**
  * @brief  Main function
  *****************************************************************************/
 int main(void)
 {
-
 
 	// Initialize FatFS and MicroSD
 	init_filesystem();

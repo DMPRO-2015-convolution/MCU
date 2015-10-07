@@ -18,21 +18,10 @@ DSTATUS resCard;	// SD card status
 
 
 
-int8_t readBuffer[BUFFER_SIZE];
-
-
-// File read state
-
-
-
-
-
-
 DWORD get_fattime(void)
 {
   return (28 << 25) | (2 << 21) | (1 << 16);
 }
-
 
 
 
@@ -47,12 +36,49 @@ extern void init_filesystem() {
 		if (!resCard) break;
 	}
 
-
+	// Mount filesystem
 	if (f_mount(0, &fatfs) != FR_OK)
 	{
+		/* Could not mount filesystem due to MicroSD missing or no FAT32 */
 		while(1);
 	}
 
 }
 
 
+
+
+extern void open_file(FIL *file, char *filename) {
+	if (f_open(file, filename, FA_READ) != FR_OK)	{
+		/* Could not find file*/
+		while (1);
+	}
+
+	/*Set the file write pointer to first location */
+	if (f_lseek(file, 0) != FR_OK) {
+		/* Error. Cannot set the file write pointer */
+		while(1);
+	}
+}
+
+
+extern void read_file(FIL *file, uint8_t *buffer, UINT bufferSize, UINT *bytesRead) {
+	if (f_read(file, buffer, bufferSize, bytesRead) != FR_OK) {
+		/* Could not read file */
+		while (1);
+	}
+}
+
+extern void close_file(FIL *file) {
+	if (f_close(file) != FR_OK) {
+		/* Could not close file */
+		while(1);
+	}
+}
+
+extern void seek_file(FIL *file, DWORD offset) {
+	if (f_lseek(file, offset) != FR_OK) {
+		/* Could not seek file */
+		while(1);
+	}
+}
