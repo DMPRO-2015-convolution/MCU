@@ -32,6 +32,7 @@ extern void enter_DefaultMode_from_RESET(void) {
 	CMU_enter_DefaultMode_from_RESET();
 	USART0_enter_DefaultMode_from_RESET();
 	USART1_enter_DefaultMode_from_RESET();
+	USART2_enter_DefaultMode_from_RESET();
 	I2C0_enter_DefaultMode_from_RESET();
 	EBI_enter_DefaultMode_from_RESET();
 	PORTIO_enter_DefaultMode_from_RESET();
@@ -93,6 +94,9 @@ extern void CMU_enter_DefaultMode_from_RESET(void) {
 
 	/* Enable clock for USART1 */
 	CMU_ClockEnable(cmuClock_USART1, true);
+
+	/* Enable clock for USART2 */
+	CMU_ClockEnable(cmuClock_USART2, true);
 
 	/* Enable clock for GPIO by default */
 	CMU_ClockEnable(cmuClock_GPIO, true);
@@ -298,12 +302,33 @@ extern void USART1_enter_DefaultMode_from_RESET(void) {
 //================================================================================
 extern void USART2_enter_DefaultMode_from_RESET(void) {
 	// $[USART_InitAsync]
+	USART_InitAsync_TypeDef initasync = USART_INITASYNC_DEFAULT;
+
+	initasync.baudrate = 115200;
+	initasync.databits = usartDatabits8;
+	initasync.parity = usartNoParity;
+	initasync.stopbits = usartStopbits1;
+	initasync.oversampling = usartOVS16;
+#if defined( USART_INPUT_RXPRS ) && defined( USART_CTRL_MVDIS )
+	initasync.mvdis = 0;
+	initasync.prsRxEnable = 0;
+	initasync.prsRxCh = 0;
+#endif
+
+	USART_InitAsync(USART2, &initasync);
 	// [USART_InitAsync]$
 
 	// $[USART_InitSync]
 	// [USART_InitSync]$
 
 	// $[USART_InitPrsTrigger]
+	USART_PrsTriggerInit_TypeDef initprs = USART_INITPRSTRIGGER_DEFAULT;
+
+	initprs.rxTriggerEnable = 0;
+	initprs.txTriggerEnable = 0;
+	initprs.prsTriggerChannel = usartPrsTriggerCh0;
+
+	USART_InitPrsTrigger(USART2, &initprs);
 	// [USART_InitPrsTrigger]$
 
 }
@@ -677,6 +702,22 @@ extern void PORTIO_enter_DefaultMode_from_RESET(void) {
 	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE1_MASK)
 			| GPIO_P_MODEL_MODE1_INPUT;
 
+	/* Pin PC2 is configured to Push-pull */
+	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE2_MASK)
+			| GPIO_P_MODEL_MODE2_PUSHPULL;
+
+	/* Pin PC3 is configured to Input enabled */
+	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE3_MASK)
+			| GPIO_P_MODEL_MODE3_INPUT;
+
+	/* Pin PC4 is configured to Push-pull */
+	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE4_MASK)
+			| GPIO_P_MODEL_MODE4_PUSHPULL;
+
+	/* Pin PC5 is configured to Push-pull */
+	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE5_MASK)
+			| GPIO_P_MODEL_MODE5_PUSHPULL;
+
 	/* Pin PC6 is configured to Push-pull */
 	GPIO->P[2].MODEL = (GPIO->P[2].MODEL & ~_GPIO_P_MODEL_MODE6_MASK)
 			| GPIO_P_MODEL_MODE6_PUSHPULL;
@@ -842,6 +883,10 @@ extern void PORTIO_enter_DefaultMode_from_RESET(void) {
 
 	/* Enable signals CLK, CS, RX, TX */
 	USART1->ROUTE |= USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN | USART_ROUTE_RXPEN
+			| USART_ROUTE_TXPEN;
+
+	/* Enable signals CLK, CS, RX, TX */
+	USART2->ROUTE |= USART_ROUTE_CLKPEN | USART_ROUTE_CSPEN | USART_ROUTE_RXPEN
 			| USART_ROUTE_TXPEN;
 	// [Route Configuration]$
 

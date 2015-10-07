@@ -17,15 +17,24 @@
 #include "em_device.h"
 #include "em_chip.h"
 
+#include "filesystem.h"
+
 /**************************************************************************//**
  * @brief  Main function
  *****************************************************************************/
 int main(void)
 {
-  /* Chip errata */
-  //CHIP_Init();
 
-  /* Infinite loop */
-  while (1) {
-  }
+
+	//
+	init_filesystem();
+
+
+	/* Infinite loop */
+	while (1) {
+	}
 }
+
+
+
+
