@@ -1,5 +1,6 @@
 #include "filesystem.h"
 #include "bsp.h"
+#include "fpgaflash.h"
 
 #define BYTES_TO_READ 1024*64
 
@@ -45,6 +46,12 @@ extern void test_filesystem() {
 
 }
 
+
+extern void test_slaveserial() {
+
+	Start_SlaveSerial();
+
+}
 
 
 

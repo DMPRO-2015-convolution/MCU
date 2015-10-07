@@ -62,8 +62,8 @@ int main(void)
 
 
 	// Test components
-	test_filesystem();
-
+	//test_filesystem();
+	test_slaveserial();
 
 
 

@@ -1,10 +1,15 @@
 #include "fpgaflash.h"
 #include "filesystem.h"
 #include "em_gpio.h"
+#include "em_cmu.h"
 
+#define BUFFER_SIZE 1024*16
+#define BYTES_TO_READ BUFFER_SIZE*2
 
-#define BUFFER_SIZE 1024
-
+void Start_SlaveSerial();
+void Check_DONE_Bit();
+void SlaveSerial(uint16_t buffer[]);
+void ShiftDataOut(uint16_t Data16);
 
 extern void init_fpgaflash() {
 
@@ -12,7 +17,7 @@ extern void init_fpgaflash() {
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
 	/* Configure PD with alternate drive strength of 0.5mA */
-	GPIO_DriveModeSet(gpioPortD, gpioDriveModeLowest);
+	GPIO_DriveModeSet(gpioPortD, gpioDriveModeHigh);
 
 	/* Configure PD0-2 as push pull output */
 	GPIO_PinModeSet(gpioPortD, 0, gpioModePushPull, 0); //DIN
@@ -44,14 +49,41 @@ UINT bytesRead;
 uint16_t buffer[BUFFER_SIZE];
 
 
-void Start_SlaveSerial( ) {
+extern void Start_SlaveSerial( ) {
 
-    open_file(&file, "tutorial.bit");
 
+
+    //----------------------------------------------------------------------
+    //Toggle Program Pin by Toggling Program_OE bit
+    //This is accomplished by writing to the Program Register in the CPLD
+    //
+    //NOTE: The Program_OE bit should be driven high to bring the Virtex
+    //      Program Pin low. Likewise, it should be driven low
+    //      to bring the Virtex Program Pin to High-Z
+    //----------------------------------------------------------------------
+
+    //IOWrite(CPLD_Program_Reg, Prog_Bit); //PROGRAM_OE LOW
+    GPIO_PinOutClear(gpioPortD, 1);
+
+
+    //----------------------------------------------------------------------
+    //Bring Program High-Z
+    //(Drive Program_OE bit low to bring Virtex Program Pin to High-Z
+    //----------------------------------------------------------------------
+
+    //Program_OE bit Low brings the Virtex Program Pin to High Z:
+    //IOWrite(CPLD_Program_Reg, 0x0000);
+    GPIO_PinOutSet(gpioPortD, 1);
+
+
+    open_file(&file, "tutorial.bin");
+    //int buffId = 0;
     while (1) {
-    	read_file(&file, buffer, BUFFER_SIZE, &bytesRead);
+    	read_file(&file, buffer, BYTES_TO_READ, &bytesRead);
     	if (bytesRead == 0) break;
     	SlaveSerial(buffer);
+    	//buffId++;
+    	//BSP_LedsSet(buffId);
     }
 
     //----------------------------------------------------------------------
@@ -71,31 +103,11 @@ void Start_SlaveSerial( ) {
 }
 
 
-void SlaveSerial(uint16_t buffer) {
+void SlaveSerial(uint16_t buffer[]) {
 	uint16_t Data16;
 
 
-    //----------------------------------------------------------------------
-    //Toggle Program Pin by Toggling Program_OE bit
-    //This is accomplished by writing to the Program Register in the CPLD
-    //
-    //NOTE: The Program_OE bit should be driven high to bring the Virtex
-    //      Program Pin low. Likewise, it should be driven low
-    //      to bring the Virtex Program Pin to High-Z
-    //----------------------------------------------------------------------
 
-    //IOWrite(CPLD_Program_Reg, Prog_Bit); //PROGRAM_OE LOW
-    GPIO_PinOutSet(gpioPortD, 1);
-
-
-    //----------------------------------------------------------------------
-    //Bring Program High-Z
-    //(Drive Program_OE bit low to bring Virtex Program Pin to High-Z
-    //----------------------------------------------------------------------
-
-    //Program_OE bit Low brings the Virtex Program Pin to High Z:
-    //IOWrite(CPLD_Program_Reg, 0x0000);
-    GPIO_PinOutClear(gpioPortD, 1);
 
 
     //----------------------------------------------------------------------
@@ -104,12 +116,13 @@ void SlaveSerial(uint16_t buffer) {
 
 
     Data16 = 0;  //Initialize Data16 variable before entering While Loop
-
+    /*
     while(Data16 == 0) {
         //Data16 = IORead(CPLD_Input_Reg);    //Read Input Register
         Data16 = GPIO_PinInGet(gpioPortD, 3); //Read INIT
         Data16 = Data16 & 0x0001;           //Check Status of /INIT
     }
+    */
 
 
     //----------------------------------------------------------------------
@@ -119,13 +132,16 @@ void SlaveSerial(uint16_t buffer) {
     int i;
     for (i = 0; i < bytesRead; i++) {
     	Data16 = buffer[i];
+    	BSP_LedsSet(Data16);
     	ShiftDataOut(Data16);
     }
+
+
 
 }
 
 
-void ShiftDataOut( Data16 ) {
+void ShiftDataOut(uint16_t Data16) {
 
 	uint8_t DataOut;
     //Word SCLK_LOW;
@@ -294,7 +310,7 @@ void ShiftDataOut( Data16 ) {
 
 void Check_DONE_Bit(void) {
 
-	uint16_t Data16;
+	//uint16_t Data16;
     uint8_t Done;
     uint8_t Init;
     uint8_t ExtraCclk;
