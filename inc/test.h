@@ -3,5 +3,6 @@
 
 extern void test_filesystem();
 extern void test_slaveserial();
+extern void test_ebi();
 
 #endif

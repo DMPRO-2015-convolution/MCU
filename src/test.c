@@ -4,6 +4,7 @@
 
 #define BYTES_TO_READ 1024*64
 
+
 extern void test_filesystem() {
 
 	// Init LEDs
@@ -51,6 +52,20 @@ extern void test_slaveserial() {
 
 	Start_SlaveSerial();
 
+}
+
+extern void test_ebi() {
+	int i = 0;
+	ebi_write(0,0b1010);
+	int x = 0;
+	while (i < 4) {
+		ebi_write(0, 0);
+		for (int j = 0; j < 100000; j++) {
+			x++;
+		}
+		i++;
+	}
+	while (1);
 }
 
 

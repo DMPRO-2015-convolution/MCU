@@ -5,6 +5,6 @@
 #include <stdint.h>
 
 extern void init_ebi();
-extern void ebi_write(uint32_t *address, uint8_t value);
+extern void ebi_write(int address, uint16_t value);
 
 #endif

@@ -54,18 +54,20 @@ int main(void)
 
 
 	// Initialize FatFS and MicroSD
-	init_filesystem();
+	//init_filesystem();
 
 	// Initialize FPGA flash module
-	init_fpgaflash();
+	//init_fpgaflash();
 
 
 
 	// Test components
 	//test_filesystem();
-	test_slaveserial();
+	//test_slaveserial();
 
-
+	//Test EBI
+	init_ebi();
+	test_ebi();
 
 	while (1) {
 

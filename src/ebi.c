@@ -3,6 +3,7 @@
 #include "em_gpio.h"
 #include "em_cmu.h"
 
+#define BANK1_BASE_ADDR 0x84000000
 
 //uint16_t *BANK0_BASE_ADDR = 0x80000000;
 //uint16_t *BANK1_BASE_ADDR = 0x84000000;
@@ -161,6 +162,7 @@ extern void init_ebi() {
 }
 
 
-extern void ebi_write(uint32_t *address, uint8_t value) {
-	*address = value;
+extern void ebi_write(int address, uint16_t value) {
+	*(uint16_t *)(BANK1_BASE_ADDR + address) = value;
 }
+
