@@ -143,8 +143,8 @@ extern void init_ebi() {
     ebiConfig.aHigh = ebiAHighA18;
 
     /* Address Setup and hold time */
-    ebiConfig.addrHoldCycles  = 3;
-    ebiConfig.addrSetupCycles = 3;
+    ebiConfig.addrHoldCycles  = 0;
+    ebiConfig.addrSetupCycles = 0;
 
     /* Read cycle times */
     ebiConfig.readStrobeCycles = 7;
@@ -152,9 +152,9 @@ extern void init_ebi() {
     ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
-    ebiConfig.writeStrobeCycles = 7;
-    ebiConfig.writeHoldCycles   = 3;
-    ebiConfig.writeSetupCycles  = 3;
+    ebiConfig.writeSetupCycles  = 2;
+    ebiConfig.writeStrobeCycles = 2;
+    ebiConfig.writeHoldCycles   = 0;
 
     /* Configure EBI bank 1 */
     EBI_Init(&ebiConfig);

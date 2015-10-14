@@ -57,12 +57,13 @@ extern void test_slaveserial() {
 extern void test_ebi() {
 	int i = 0;
 	ebi_write(0,0b1010);
-	int x = 0;
-	while (i < 4) {
-		ebi_write(0, 0);
-		for (int j = 0; j < 100000; j++) {
-			x++;
-		}
+	//int x = 0;
+	while (i < 14) {
+		ebi_write(0, i);
+
+//		for (int j = 0; j < 1000000; j++) {
+//			x++;
+//		}
 		i++;
 	}
 	while (1);
