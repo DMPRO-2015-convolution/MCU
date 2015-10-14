@@ -16,6 +16,8 @@
  ******************************************************************************/
 #include "em_device.h"
 #include "em_chip.h"
+#include "em_gpio.h"
+#include "em_cmu.h"
 
 
 #include "bsp.h"
@@ -59,6 +61,8 @@ int main(void)
 	// Initialize FPGA flash module
 	//init_fpgaflash();
 
+	//Initialize buttons and their interrupts
+	//init_buttons();
 
 
 	// Test components
@@ -69,14 +73,60 @@ int main(void)
 	init_ebi();
 	test_ebi();
 
-	while (1) {
 
+	while (1) {
+		//EMU_EnterEM2();
 	}
 
 
 
 }
 
+void GPIO_ODD_IRQHandler(void) {
+  /* clear flag for PE1 interrupt */
+  GPIO_IntClear(0xff);
+  interrupt_handler();
+}
 
+void GPIO_EVEN_IRQHandler(void) {
+  /* clear flag for PE1 interrupt */
+  GPIO_IntClear(0xff);
+  interrupt_handler();
+}
 
+void interrupt_handler() {
 
+	if (GPIO_PinInGet(gpioPortD, 5)) {
+		//Switch between SD and camera
+	}
+	else if (GPIO_PinInGet(gpioPortD, 6)) {
+		//Change kernel
+	}
+	else if (GPIO_PinInGet(gpioPortD, 7)) {
+		//Flash FPGA
+	}
+	else if (GPIO_PinInGet(gpioPortD, 8)) {
+		//Mystery function
+	}
+}
+
+void init_buttons() {
+	/* Enable clock for GPIO module */
+	CMU_ClockEnable(cmuClock_GPIO, true);
+
+	/* Configure PE1 as input with filter enable */
+	GPIO_PinModeSet(gpioPortD, 5, gpioModeInputPullFilter, 1);
+	GPIO_PinModeSet(gpioPortD, 6, gpioModeInputPullFilter, 1);
+	GPIO_PinModeSet(gpioPortD, 7, gpioModeInputPullFilter, 1);
+	GPIO_PinModeSet(gpioPortD, 8, gpioModeInputPullFilter, 1);
+
+	/* Enable GPIO_ODD interrupt vector in NVIC */
+	NVIC_EnableIRQ(GPIO_ODD_IRQn);
+	NVIC_EnableIRQ(GPIO_EVEN_IRQn);
+
+	/* Configure PE1 interrupt on falling edge */
+	GPIO_IntConfig(gpioPortD, 5, false, true, true);
+	GPIO_IntConfig(gpioPortD, 6, false, true, true);
+	GPIO_IntConfig(gpioPortD, 7, false, true, true);
+	GPIO_IntConfig(gpioPortD, 8, false, true, true);
+}
