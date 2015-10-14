@@ -14,6 +14,8 @@
  * terms of that agreement.
  *
  ******************************************************************************/
+#include "mcu.h"
+
 #include "em_device.h"
 #include "em_chip.h"
 #include "em_gpio.h"
@@ -36,19 +38,19 @@ int main(void)
 {
 
 	/* Use 32MHZ HFXO as core clock frequency */
-	//CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+	CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
 
 	//
 	// TODO Temp for testing on BSP, separate init for mcu needed
 	//
 	/* Initialize DK board register access */
-	//BSP_Init(BSP_INIT_DEFAULT);
+	BSP_Init(BSP_INIT_DEFAULT);
 	/* If first word of user data page is non-zero, enable eA Profiler trace */
-	//BSP_TraceProfilerSetup();
+	BSP_TraceProfilerSetup();
 	/* Test leds */
-	//BSP_LedsSet(0x1);
+	BSP_LedsSet(0x0);
 	/* Enable SPI access to MicroSD card */
-	//BSP_PeripheralAccess(BSP_MICROSD, true);
+	BSP_PeripheralAccess(BSP_MICROSD, true);
 	//
 	//
 	//
@@ -56,13 +58,13 @@ int main(void)
 
 
 	// Initialize FatFS and MicroSD
-	//init_filesystem();
+	init_filesystem();
 
 	// Initialize FPGA flash module
-	//init_fpgaflash();
+	init_fpgaflash();
 
 	//Initialize buttons and their interrupts
-	//init_buttons();
+	init_buttons();
 
 
 	// Test components
@@ -70,8 +72,8 @@ int main(void)
 	//test_slaveserial();
 
 	//Test EBI
-	init_ebi();
-	test_ebi();
+	//init_ebi();
+	//test_ebi();
 
 
 	while (1) {
@@ -96,16 +98,16 @@ void GPIO_EVEN_IRQHandler(void) {
 
 void interrupt_handler() {
 
-	if (GPIO_PinInGet(gpioPortD, 5)) {
+	if (GPIO_PinInGet(gpioPortD, 5) == 0) {
 		//Switch between SD and camera
 	}
-	else if (GPIO_PinInGet(gpioPortD, 6)) {
+	else if (GPIO_PinInGet(gpioPortD, 6) == 0) {
 		//Change kernel
 	}
-	else if (GPIO_PinInGet(gpioPortD, 7)) {
+	else if (GPIO_PinInGet(gpioPortD, 7) == 0) {
 		//Flash FPGA
 	}
-	else if (GPIO_PinInGet(gpioPortD, 8)) {
+	else if (GPIO_PinInGet(gpioPortD, 8) == 0) {
 		//Mystery function
 	}
 }
