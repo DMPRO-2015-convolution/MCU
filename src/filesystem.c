@@ -2,7 +2,7 @@
 #include "microsd.h"
 #include "diskio.h"
 #include "filesystem.h"
-
+#include <string.h>
 
 
 #define BUFFER_SIZE 1024
@@ -32,7 +32,6 @@ extern void init_filesystem() {
 		MICROSD_Init();
 
 		resCard = disk_initialize(0);
-
 		if (!resCard) break;
 	}
 
@@ -82,3 +81,50 @@ extern void seek_file(FIL *file, DWORD offset) {
 		while(1);
 	}
 }
+
+
+
+extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH], int* num_files) {
+	FRESULT res;
+	FILINFO fno;
+	DIR dir;
+	int i = 0;
+	char *fn;
+
+	res = f_opendir(&dir, path);
+	if (res == FR_OK) {
+		while(i < FILE_COUNT) {
+			res = f_readdir(&dir, &fno);
+			if (res != FR_OK || fno.fname[0] == 0) {
+				//while(1);
+				break;
+			}
+			if (fno.fname[0] == '.') continue;
+
+			char *a = fno.fname;
+			//while(1);
+
+			strcpy(strings[i], fno.fname);
+
+			i++;
+		}
+	} else {
+		// Not ok
+		while(1);
+	}
+
+	*num_files = i;
+}
+
+
+
+
+
+extern void load_kernel(char *filename, kernel_type *kernel) {
+	FIL file;
+	UINT bytesRead;
+	open_file(&file, filename);
+	read_file(&file, (uint8_t*)kernel, sizeof(uint16_t)*(MAX_KERNEL_SIZE+1), &bytesRead);
+	close_file(&file);
+}
+
