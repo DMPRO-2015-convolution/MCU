@@ -3,10 +3,6 @@
 #include "em_gpio.h"
 #include "em_cmu.h"
 
-#define BANK1_BASE_ADDR 0x84000000
-
-//uint16_t *BANK0_BASE_ADDR = 0x80000000;
-//uint16_t *BANK1_BASE_ADDR = 0x84000000;
 
 
 extern void init_ebi() {
@@ -17,7 +13,7 @@ extern void init_ebi() {
     CMU_ClockEnable(cmuClock_EBI, true);
     CMU_ClockEnable(cmuClock_GPIO, true);
 
-    CMU_HFRCOBandSet(cmuHFRCOBand_28MHz);
+    //CMU_HFRCOBandSet(cmuHFRCOBand_28MHz);
 
     /* Giant or Leopard family. */
 
@@ -106,8 +102,8 @@ extern void init_ebi() {
     ebiConfig.aHigh = ebiAHighA19;
 
     /* Address Setup and hold time */
-    ebiConfig.addrHoldCycles  = 0;
-    ebiConfig.addrSetupCycles = 0;
+    ebiConfig.addrHoldCycles  = 255;
+    ebiConfig.addrSetupCycles = 255;
 
 
     /* Read cycle times */
@@ -116,9 +112,9 @@ extern void init_ebi() {
     ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
-    ebiConfig.writeStrobeCycles = 0;
-    ebiConfig.writeHoldCycles   = 0;
-    ebiConfig.writeSetupCycles  = 1;
+    ebiConfig.writeStrobeCycles = 255;
+    ebiConfig.writeHoldCycles   = 255;
+    ebiConfig.writeSetupCycles  = 255;
 
     /* Configure EBI bank 0 */
     EBI_Init(&ebiConfig);
@@ -147,14 +143,18 @@ extern void init_ebi() {
     ebiConfig.addrSetupCycles = 0;
 
     /* Read cycle times */
-    ebiConfig.readStrobeCycles = 7;
+    ebiConfig.readStrobeCycles = 3;
     ebiConfig.readHoldCycles   = 3;
     ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
-    ebiConfig.writeSetupCycles  = 2;
-    ebiConfig.writeStrobeCycles = 2;
+    ebiConfig.writeSetupCycles  = 1;
+    ebiConfig.writeStrobeCycles = 1;
     ebiConfig.writeHoldCycles   = 0;
+
+    // Set polarity to active high
+    ebiConfig.wePolarity = ebiActiveHigh;
+    ebiConfig.rePolarity = ebiActiveHigh;
 
     /* Configure EBI bank 1 */
     EBI_Init(&ebiConfig);
@@ -163,6 +163,17 @@ extern void init_ebi() {
 
 
 extern void ebi_write(int address, uint16_t value) {
-	*(uint16_t *)(BANK1_BASE_ADDR + address) = value;
+	*(uint16_t *)(BANK1_BASE_ADDR + (address << 1)) = value;
 }
+
+extern uint16_t ebi_read(int address) {
+	return *(volatile uint16_t*)(BANK1_BASE_ADDR + (address << 1));
+}
+
+
+
+
+
+
+
 
