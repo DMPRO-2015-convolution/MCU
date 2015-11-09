@@ -102,17 +102,18 @@ int main(void)
 	get_filenames("./binfile",strings, &numFiles);
 	//numFiles = sizeof(strings[0]);
 	//strlen(strings[0]);
-	char* name; //= "tmp/txt.txt";
-	asprintf(&name, "%s%s", "binfile/", strings[0]);
+	char* name = "tmp/txt.txt";
+	//asprintf(&name, "%s%s", "binfile/", strings[0]);
 
 	FIL file;
-	uint8_t buffer[1024*64];
+	uint8_t buffer[1024];
 	UINT bytesRead;
 
 	open_file(&file, name);
 	//int byte;
 	while (1) {
-		read_file(&file, buffer, 1024*64, &bytesRead);
+		read_file(&file, buffer, 1024, &bytesRead);
+		while (1);
 		if (bytesRead == 0) break;
 		//SlaveSerial(buffer);
 
