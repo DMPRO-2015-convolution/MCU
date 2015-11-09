@@ -97,6 +97,32 @@ int main(void)
 	// Initialize FPGA flash module
 	init_fpgaflash();
 
+	int numFiles = 0;
+	char strings[FILE_COUNT][FILENAME_LENGTH];
+	get_filenames("./binfile",strings, &numFiles);
+	//numFiles = sizeof(strings[0]);
+	//strlen(strings[0]);
+	char* name; //= "tmp/txt.txt";
+	asprintf(&name, "%s%s", "binfile/", strings[0]);
+
+	FIL file;
+	uint8_t buffer[1024*64];
+	UINT bytesRead;
+
+	open_file(&file, name);
+	//int byte;
+	while (1) {
+		read_file(&file, buffer, 1024*64, &bytesRead);
+		if (bytesRead == 0) break;
+		//SlaveSerial(buffer);
+
+		/*int i = 0;
+		while (i < sizeof(buffer)) {
+			byte = buffer[i];
+			i++;
+		}*/
+	}
+
 	/* Setup SysTick Timer for 10 msec interrupts  */
 	/*if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000))
 	{
