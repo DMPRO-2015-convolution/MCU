@@ -14,13 +14,15 @@
  * terms of that agreement.
  *
  ******************************************************************************/
-#include "mcu.h"
+
+
 
 #include "em_device.h"
 #include "em_chip.h"
 #include "em_gpio.h"
 #include "em_cmu.h"
 
+#include "mcu.h"
 
 #include "bsp.h"
 #include "bsp_trace.h"
@@ -30,6 +32,26 @@
 #include "fpgaflash.h"
 
 #include "test.h"
+#include "ebi.h"
+
+uint32_t msTicks;
+
+
+void SysTick_Handler(void)
+{
+  /* Increment counter necessary in Delay()*/
+  msTicks++;
+}
+
+void Delay(uint32_t dlyTicks)
+{
+  uint32_t curTicks;
+
+  curTicks = msTicks;
+  while ((msTicks - curTicks) < dlyTicks) ;
+}
+
+
 
 /**************************************************************************//**
  * @brief  Main function
@@ -37,45 +59,119 @@
 int main(void)
 {
 
-	/* Use 32MHZ HFXO as core clock frequency */
-	CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+	/* Use 32MHZ HFRCO as core clock frequency */
+	CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFRCO);
 
 	//
 	// TODO Temp for testing on BSP, separate init for mcu needed
 	//
+
 	/* Initialize DK board register access */
-	BSP_Init(BSP_INIT_DEFAULT);
-	/* If first word of user data page is non-zero, enable eA Profiler trace */
-	BSP_TraceProfilerSetup();
-	/* Test leds */
-	BSP_LedsSet(0x0);
-	/* Enable SPI access to MicroSD card */
+#ifdef DEVKIT
+	BSP_Init(BSP_INIT_DK_SPI);
 	BSP_PeripheralAccess(BSP_MICROSD, true);
+#endif
+	/* If first word of user data page is non-zero, enable eA Profiler trace */
+	//BSP_TraceProfilerSetup();
+	/* Test leds */
+	//BSP_LedsSet(0x1);
+	/* Enable SPI access to MicroSD card */
 	//
 	//
 	//
 
 
+	//BSP_LedsSet(0xff);
 
 	// Initialize FatFS and MicroSD
 	init_filesystem();
 
-	// Initialize FPGA flash module
-	init_fpgaflash();
+	//BSP_LedsSet(0xff);
+	// Initialize EBI bus
+	//init_ebi();
+
 
 	//Initialize buttons and their interrupts
 	init_buttons();
 
+	// Initialize FPGA flash module
+	init_fpgaflash();
 
-	// Test components
-	//test_filesystem();
-	//test_slaveserial();
+	/* Setup SysTick Timer for 10 msec interrupts  */
+	/*if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE) / 1000))
+	{
+		while (1) ;
+	}
+	*/
 
-	//Test EBI
-	//init_ebi();
-	//test_ebi();
+
+	//BSP_LedsSet(0xff);
+/*
+	// Testing Output
+	GPIO_PinModeSet( gpioPortA, 0, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 1, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 2, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 3, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 4, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 5, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 6, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 7, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 8, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 9, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 10, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 11, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 12, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 13, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 14, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 15, gpioModePushPull, 0 );
 
 
+	int i = 0;
+	for (i=0; i < 16; i++) {
+		GPIO_PinOutClear(gpioPortA, i);
+	}
+	GPIO_PinOutSet(gpioPortA, 10); //2nd bit
+
+	GPIO_PinModeSet( gpioPortA, 14, gpioModePushPull, 0 );
+	GPIO_PinModeSet( gpioPortA, 15, gpioModePushPull, 0 );
+
+	GPIO_PinModeSet(gpioPortB, 12, gpioModeInputPullFilter, 1); // DONE
+	GPIO_PinModeSet(gpioPortB, 11, gpioModePushPull, 0); // Program B
+	GPIO_PinModeSet(gpioPortB, 8, gpioModeInputPullFilter, 1); // INIT_B
+
+
+
+	int init_b = 0;
+	int program_b = 0;
+	program_b = GPIO_PinInGet(gpioPortB, 11);
+
+	//while(1);
+
+	// Set program_b high until init_b is high
+	GPIO_PinOutSet(gpioPortB, 11);
+	while(init_b == 0) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
+
+	// Set program_b to low until init_b is low
+	GPIO_PinOutClear(gpioPortB, 11);
+	while (!(init_b == 0)) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
+
+	// Set program_b back to high and wait for init_b is high
+	GPIO_PinOutSet(gpioPortB, 11);
+	while(init_b == 0) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
+
+	int numFiles = 0;
+	char strings[FILE_COUNT][FILENAME_LENGTH];
+	get_filenames("./binfile",strings, &numFiles);
+
+
+	Start_SlaveSerial();
+*/
 	while (1) {
 		//EMU_EnterEM2();
 	}
