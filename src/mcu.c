@@ -94,7 +94,9 @@ int main(void)
 
 	// Initialize GUI
 	init_gui();
-	Start_SlaveSerial();
+
+	// Program fpga with  default binary file
+	slave_serial("binfile/default.bin");
 
 
 	int numFiles = 0;

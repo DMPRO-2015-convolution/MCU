@@ -4,6 +4,7 @@
 #include "filesystem.h"
 #include <string.h>
 #include "ebi.h"
+#include "fpgaflash.h"
 
 // Screen size
 #define SCREEN_W 640
@@ -27,6 +28,15 @@
 #define SELECTED_COLOR {0,0,255}
 
 
+// Main Menu indices
+#define MAIN_MENU_KERNEL 0
+#define MAIN_MENU_FPGA 1
+#define MAIN_MENU_MAP 2
+#define MAIN_MENU_REDUCE 3
+#define MAIN_MENU_IMAGE_SOURCE 4
+
+#define MAIN_MENU_COUNT 5
+
 //
 // Variables
 //
@@ -37,7 +47,7 @@ gui_state_t currentState;
 // The index of the option that is selected
 int currentSelection;
 
-// The current availiable options
+// The current available options
 char options[OPTION_COUNT][OPTION_NAME_LENGTH];
 int optionCount;
 
@@ -115,11 +125,12 @@ void exit_gui() {
 
 void display_main_menu() {
 
-	strcpy(options[0],"Configure Kernel");
-	strcpy(options[1],"Configure FPGA");
-	strcpy(options[2],"Select Map operand");
-	strcpy(options[3],"Select Reduce operand");
-	strcpy(options[4],"Select image source");
+	strcpy(options[MAIN_MENU_KERNEL],"Configure Kernel");
+	strcpy(options[MAIN_MENU_FPGA],"Configure FPGA");
+	strcpy(options[MAIN_MENU_MAP],"Select Map operand");
+	strcpy(options[MAIN_MENU_REDUCE],"Select Reduce operand");
+	strcpy(options[MAIN_MENU_IMAGE_SOURCE],"Select image source");
+	optionCount = MAIN_MENU_COUNT;
 
 	draw_menu();
 
@@ -127,7 +138,7 @@ void display_main_menu() {
 
 void select_main_menu() {
 	switch(currentSelection) {
-	case 0:
+	case MAIN_MENU_KERNEL:
 		display_kernel_menu();
 		break;
 	default:
@@ -149,10 +160,24 @@ void select_kernel() {
 }
 
 void display_fpga_menu() {
-
+	currentState = FPGA_MENU;
 	get_filenames("./binfile", options, &optionCount);
 	draw_menu();
+}
 
+void select_fpga() {
+	char *binFilename = options[currentSelection];
+	exit_gui();
+
+	slave_serial(binFilename);
+}
+
+
+void display_image_source() {
+	strcpy(options[0], "MicroSD Card");
+	strcpy(options[1], "Camera");
+	optionCount = 2;
+	draw_menu();
 }
 
 
@@ -178,7 +203,7 @@ void draw_menu() {
 	for (int i=0; i < optionCount; i++) {
 
 		// Set the background color based on selection
-		backColor = (currentSelection == i) ? backgroundColor : backColor;
+		backColor = (currentSelection == i) ? selectedColor : backgroundColor;
 
 		// Reset PBM buffer
 		memset(pbmBuffer, 0, pbmBufferSize);
@@ -192,14 +217,14 @@ void draw_menu() {
 		uint8_t byte;
 		for (int j=0; j < pbmBufferSize; j++) {
 			byte = pbmBuffer[j];
-			imageBuffer[CHAR_H*j + 0] = (byte&(1<<7)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 1] = (byte&(1<<6)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 2] = (byte&(1<<5)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 3] = (byte&(1<<4)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 4] = (byte&(1<<3)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 5] = (byte&(1<<2)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 6] = (byte&(1<<1)) ? fontColor : backgroundColor;
-			imageBuffer[CHAR_H*j + 7] = (byte&(1<<0)) ? fontColor : backgroundColor;
+			imageBuffer[CHAR_H*j + 0] = (byte&(1<<7)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 1] = (byte&(1<<6)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 2] = (byte&(1<<5)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 3] = (byte&(1<<4)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 4] = (byte&(1<<3)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 5] = (byte&(1<<2)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 6] = (byte&(1<<1)) ? fontColor : backColor;
+			imageBuffer[CHAR_H*j + 7] = (byte&(1<<0)) ? fontColor : backColor;
 		}
 
 
@@ -236,25 +261,18 @@ int is_submenu() {
 			currentState == IMAGE_MENU);
 }
 
-void update_selection() {
-
-	// Redraw the current menu
-	draw_menu();
-
-
-}
 
 void on_button_pressed(button_t button) {
 	switch (button) {
 	case BTN_UP:
 		currentSelection--;
 		currentSelection = currentSelection % optionCount;
-		update_selection();
+		draw_menu();
 		break;
 	case BTN_DOWN:
 		currentSelection++;
 		currentSelection = currentSelection % optionCount;
-		update_selection();
+		draw_menu();
 		break;
 	case BTN_OK:
 		if (is_idle()) {

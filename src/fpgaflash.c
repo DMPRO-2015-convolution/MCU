@@ -40,11 +40,11 @@ UINT bytesRead;
 uint8_t buffer[BUFFER_SIZE];
 
 
-extern void Start_SlaveSerial( ) {
+extern void slave_serial(char *binFilename) {
 
 
 	// TODO input file from argument
-	open_file(&file, "binfile/default.bin");
+	open_file(&file, binFilename);
 
 	int init_b = 0;
     int i = 0;

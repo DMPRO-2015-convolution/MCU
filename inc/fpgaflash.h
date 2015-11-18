@@ -4,6 +4,6 @@
 
 
 extern void init_fpgaflash();
-extern void Start_SlaveSerial();
+extern void slave_serial(char *binFilename);
 
 #endif
