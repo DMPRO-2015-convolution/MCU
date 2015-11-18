@@ -2,11 +2,10 @@
 #include "filesystem.h"
 #include "em_gpio.h"
 #include "em_cmu.h"
-
-#define BUFFER_SIZE 1024*8
+#include "em_usart.h"
+#define BUFFER_SIZE 1024*32
 #define BYTES_TO_READ BUFFER_SIZE
 
-void Start_SlaveSerial();
 
 const int clkPort = gpioPortD;
 const int clkPin = 2;
@@ -31,19 +30,38 @@ extern void init_fpgaflash() {
 	GPIO_PinModeSet(gpioPortF, 12, gpioModePushPull, 0); // Program B
 	GPIO_PinOutSet(gpioPortF, 12);
 
+
+	/* Enabling clock to USART 0 */
+	CMU_ClockEnable(FPGA_CMUCLOCK, true);
+	CMU_ClockEnable(cmuClock_GPIO, true);
+
+	/* Initialize USART in SPI master mode. */
+	USART_InitSync_TypeDef init = USART_INITSYNC_DEFAULT;
+	init.baudrate = FPGA_HI_SPI_FREQ;
+	init.msbf     = true;
+	USART_InitSync(FPGA_USART, &init);
+
+	/* Enabling pins and setting location, SPI CS not enable */
+	FPGA_USART->ROUTE = USART_ROUTE_TXPEN | USART_ROUTE_RXPEN |
+	                         USART_ROUTE_CLKPEN | FPGA_LOC;
+
+	  /* IO configuration */
+	GPIO_PinModeSet(FPGA_GPIOPORT, FPGA_MOSIPIN, gpioModePushPull, 0);  /* MOSI */
+	GPIO_PinModeSet(FPGA_GPIOPORT, FPGA_MISOPIN, gpioModeInputPull, 1); /* MISO */
+	GPIO_PinModeSet(FPGA_GPIOPORT, FPGA_CSPIN,   gpioModePushPull, 1);  /* CS */
+	GPIO_PinModeSet(FPGA_GPIOPORT, FPGA_CLKPIN,  gpioModePushPull, 0);  /* CLK */
+
+
 }
 
 
-// Filesystem for loading bitfile
-FIL file;
-UINT bytesRead;
-uint8_t buffer[BUFFER_SIZE];
-
 
 extern void slave_serial(char *binFilename) {
+	FIL file;
+	UINT bytesRead;
+	uint16_t buffer[BUFFER_SIZE/2];
 
 
-	// TODO input file from argument
 	open_file(&file, binFilename);
 
 	int init_b = 0;
@@ -69,88 +87,25 @@ extern void slave_serial(char *binFilename) {
 		init_b = GPIO_PinInGet(gpioPortB, 8);
 	}
 
-    while (1) {
-    	read_file(&file, buffer, BYTES_TO_READ, &bytesRead);
-    	if (bytesRead == 0) break;
-    	i++;
+	/* Clear send and receive buffers. */
+	FPGA_USART->CMD = USART_CMD_CLEARRX | USART_CMD_CLEARTX;
 
-    	// Go through all bytes in the buffer
-    	for (int j=0; j<bytesRead; j++) {
-    		// Clear clk and data
-    		byte = buffer[j];
 
-    		// Optimize for sparse files. Set data bit once and clock 8 times
-    		if (byte == 0x0) {
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-    			GPIO->P[gpioPortD].DOUTSET = 0x0;
+	while (1) {
+		read_file(&file, buffer, BYTES_TO_READ, &bytesRead);
+		if (bytesRead == 0) break;
+		i++;
 
-    			// 7
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+		// Go through all bytes in the buffer
+		for (int j=0; j<bytesRead/2; j++) {
 
-    			// 6
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+			//byte = buffer[j];
 
-    			// 5
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+			while (!(FPGA_USART->STATUS & USART_STATUS_TXBL));
+			FPGA_USART->TXDOUBLE = (uint32_t) buffer[j];
+		}
+	}
 
-    			// 4
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-
-    			// 3
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-
-    			// 2
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-
-    			// 1
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-
-    			// 0
-    			GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-    		} else {
-				// Send out bit 7
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>7)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>6)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>5)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>4)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>3)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>2)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>1)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-
-				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
-				GPIO->P[gpioPortD].DOUTSET = (byte>>0)&1;
-				GPIO->P[gpioPortD].DOUTSET = 0x4;
-    		}
-    	}
-    }
 
     GPIO->P[gpioPortD].DOUTCLR = 0xffff;
 
