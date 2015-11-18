@@ -127,7 +127,7 @@ extern void load_kernel(char *filename, kernel_t *kernel) {
 	FIL file;
 	UINT bytesRead;
 	open_file(&file, filename);
-	read_file(&file, (uint8_t*)kernel, sizeof(uint16_t)*(MAX_KERNEL_SIZE+1), &bytesRead);
+	read_file(&file, kernel, sizeof(uint16_t)*(MAX_KERNEL_SIZE+1), &bytesRead);
 	close_file(&file);
 }
 
