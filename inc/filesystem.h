@@ -18,7 +18,7 @@ extern void seek_file(FIL *file, DWORD offset);
 
 
 // Directory
-#define FILE_COUNT 32
+#define FILE_COUNT 5
 #define FILENAME_LENGTH 32
 extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH], int* num_files);
 
@@ -30,11 +30,11 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 #define MAX_KERNEL_SIZE 49
 
 typedef struct {
-	uint8_t size;
+	uint16_t size;
 	int16_t elements[MAX_KERNEL_SIZE];
-} kernel_type;
+} kernel_t;
 
-extern void load_kernel(char* filename, kernel_type* kernel);
+extern void load_kernel(char *filename, kernel_t *kernel);
 
 
 //

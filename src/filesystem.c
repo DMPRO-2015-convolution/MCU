@@ -101,10 +101,13 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 			}
 			if (fno.fname[0] == '.') continue;
 
-			char *a = fno.fname;
-			//while(1);
 
-			strcpy(strings[i], fno.fname);
+			//strcpy(strings[i], fno.fname);
+
+			// Save full path
+			strcpy(strings[i], path+2);
+			strcpy(strings[i]+strlen(path)-2,"/");
+			strcpy(strings[i]+strlen(path)-1, fno.fname);
 
 			i++;
 		}
@@ -120,7 +123,7 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 
 
 
-extern void load_kernel(char *filename, kernel_type *kernel) {
+extern void load_kernel(char *filename, kernel_t *kernel) {
 	FIL file;
 	UINT bytesRead;
 	open_file(&file, filename);
