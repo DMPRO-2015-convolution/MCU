@@ -37,6 +37,11 @@
 
 #define MAIN_MENU_COUNT 5
 
+
+#define IMAGE_SOURCE_SD 0
+#define IMAGE_SOURCE_CAM 1
+#define IMAGE_SOURCE_COUNT 2
+
 //
 // Variables
 //
@@ -125,6 +130,8 @@ void exit_gui() {
 
 void display_main_menu() {
 
+	currentState = MAIN_MENU;
+
 	strcpy(options[MAIN_MENU_KERNEL],"Configure Kernel");
 	strcpy(options[MAIN_MENU_FPGA],"Configure FPGA");
 	strcpy(options[MAIN_MENU_MAP],"Select Map operand");
@@ -173,12 +180,46 @@ void select_fpga() {
 }
 
 
-void display_image_source() {
-	strcpy(options[0], "MicroSD Card");
-	strcpy(options[1], "Camera");
-	optionCount = 2;
+void display_map() {
+	currentState = MAP_MENU;
 	draw_menu();
 }
+
+void select_map() {
+	exit_gui();
+}
+
+void display_reduce() {
+	currentState = REDUCE_MENU;
+	draw_menu();
+}
+
+void select_reduce() {
+	exit_gui();
+}
+
+void display_image_source() {
+	currentState = IMAGE_SOURCE_MENU;
+	strcpy(options[IMAGE_SOURCE_SD], "MicroSD Card");
+	strcpy(options[IMAGE_SOURCE_CAM], "Camera");
+	optionCount = IMAGE_SOURCE_COUNT;
+	draw_menu();
+}
+
+void select_image_source() {
+	switch(currentSelection) {
+	case IMAGE_SOURCE_SD:
+		//TODO set image source to sd
+		break;
+	case IMAGE_SOURCE_CAM:
+		//TODO set image source to cam
+		break;
+	default:
+		break;
+	}
+}
+
+
 
 
 void draw_menu() {
@@ -240,7 +281,6 @@ void draw_menu() {
 			// Write right  padding
 			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, 200*sizeof(color_t)/sizeof(uint16_t));
 		}
-
 	}
 }
 
@@ -277,7 +317,6 @@ void on_button_pressed(button_t button) {
 	case BTN_OK:
 		if (is_idle()) {
 			reset_processor();
-			currentState = MAIN_MENU;
 			display_main_menu();
 		} else {
 			switch(currentState) {
@@ -287,6 +326,18 @@ void on_button_pressed(button_t button) {
 			case KERNEL_MENU:
 				select_kernel();
 				break;
+			case FPGA_MENU:
+				select_fpga();
+				break;
+			case MAP_MENU:
+				select_map();
+				break;
+			case REDUCE_MENU:
+				select_reduce();
+				break;
+			case IMAGE_SOURCE_MENU:
+				select_image_source();
+				break;
 			default:
 				break;
 			}
@@ -294,7 +345,9 @@ void on_button_pressed(button_t button) {
 		break;
 
 	case BTN_BACK:
-		break;
+		if (is_submenu()) {
+			display_main_menu();
+		}
 
 	}
 
