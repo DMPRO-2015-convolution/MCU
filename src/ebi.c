@@ -3,7 +3,12 @@
 #include "em_gpio.h"
 #include "em_cmu.h"
 
+#include "gui.h"
 
+
+#define BUFF_SIZE 32
+uint16_t ebiBuffer[BUFF_SIZE];
+uint8_t lastValue;
 
 extern void init_ebi() {
 
@@ -84,6 +89,7 @@ extern void init_ebi() {
 
 
     /* --------------------------------------------------------- */
+
     /* First bank needs a name, Bank 0, Base Address 0x80000000  */
     /* --------------------------------------------------------- */
     ebiConfig.banks       = EBI_BANK0;
@@ -143,9 +149,9 @@ extern void init_ebi() {
     ebiConfig.addrSetupCycles = 0;
 
     /* Read cycle times */
-    ebiConfig.readStrobeCycles = 3;
-    ebiConfig.readHoldCycles   = 3;
-    ebiConfig.readSetupCycles  = 3;
+    ebiConfig.readStrobeCycles = 255;
+    ebiConfig.readHoldCycles   = 255;
+    ebiConfig.readSetupCycles  = 255;
 
     /* Write cycle times */
     ebiConfig.writeSetupCycles  = 1;
@@ -166,10 +172,81 @@ extern void ebi_write(int address, uint16_t value) {
 	*(uint16_t *)(BANK1_BASE_ADDR + (address << 1)) = value;
 }
 
+
 extern uint16_t ebi_read(int address) {
 	return *(volatile uint16_t*)(BANK1_BASE_ADDR + (address << 1));
 }
 
+extern void ebi_write_buffer(int offset, uint16_t *buffer, int size) {
+	uint16_t *addr = (uint16_t *)(BANK1_BASE_ADDR + (offset << 1));
+	for (int i=0; i < size; i++) {
+		*(addr+i) = buffer[i];
+	}
+}
+
+
+
+
+
+
+
+/*
+ *
+ * --- CURRENTLY NOT WORKING
+ *
+ * Writes a buffer of an arbitrary amount of bytes.
+ * If the buffer is not divisible by 16 the remaining byte is sent on the next function call
+ */
+uint16_t prevValue = 0;
+int wasDivisible = 1;
+
+extern void ebi_buffer_write(int offset, uint8_t *inBuffer, int size) {
+
+	uint16_t *addr = (uint16_t*)(BANK1_BASE_ADDR + (offset << 1));
+	uint16_t *ebiBuffer;
+
+	int size8;
+	int size16;
+
+	// Check if the last write has an unsent byte
+	if (wasDivisible) {
+		ebiBuffer = (uint16_t*)inBuffer;
+	} else {
+		// Put out first value
+		*addr = (prevValue << 7)&(uint16_t)(inBuffer[0]);
+		addr++;
+		ebiBuffer = (uint16_t*)(inBuffer+1);
+		size8 = size - 1;
+		size16 = (size8)/2;
+	}
+
+
+	// Send out 16 bit data
+	for (int i=0; i < size16; i++) {
+		*addr = ebiBuffer[i];
+		addr++;
+	}
+
+
+	// Check if the sent data was divisible
+	if (size8%2) {
+		wasDivisible = 1;
+	} else {
+		prevValue = inBuffer[size];
+		wasDivisible = 0;
+	}
+}
+
+extern void flush_ebi_buffer(int offset) {
+	uint16_t *addr = (uint16_t*)(BANK1_BASE_ADDR + (offset << 1));
+	*addr = ((uint16_t)prevValue)<<7;
+	reset_ebi_buffer();
+}
+
+extern void reset_ebi_buffer() {
+	prevValue = 0;
+	wasDivisible = 1;
+}
 
 
 

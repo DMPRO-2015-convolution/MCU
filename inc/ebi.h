@@ -9,8 +9,16 @@
 
 #define EBI_IMAGE_STREAM_START 0x80000
 
+
+#define EBI_KERNEL_START 0x00100
 #define EBI_KERNEL_SIZE 0x00100
 #define EBI_KERNEL_ELEMENT 0x00101
+
+
+// TODO Assign proper address for map
+#define EBI_MAP 0x1
+#define EBI_REDUCE 0x2
+#define EBI_IMAGE_SOURCE 0x3
 
 #define EBI_IMG_CONFIG_START 0x00000
 #define EBI_IMG_CONFIG_HEIGHT 0x00000
