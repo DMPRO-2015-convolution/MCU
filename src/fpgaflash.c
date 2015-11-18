@@ -3,361 +3,181 @@
 #include "em_gpio.h"
 #include "em_cmu.h"
 
-#define BUFFER_SIZE 1024*16
-#define BYTES_TO_READ BUFFER_SIZE*2
+#define BUFFER_SIZE 1024*8
+#define BYTES_TO_READ BUFFER_SIZE
 
 void Start_SlaveSerial();
-void Check_DONE_Bit();
-void SlaveSerial(uint16_t buffer[]);
-void ShiftDataOut(uint16_t Data16);
+
+const int clkPort = gpioPortD;
+const int clkPin = 2;
+const int dinPort = gpioPortD;
+const int dinPin = 0;
+
 
 extern void init_fpgaflash() {
 
 	/* Enable clock for GPIO module */
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
-	/* Configure PD with alternate drive strength of 0.5mA */
-	GPIO_DriveModeSet(gpioPortD, gpioDriveModeHigh);
-
 	/* Configure PD0-2 as push pull output */
-	GPIO_PinModeSet(gpioPortD, 0, gpioModePushPull, 0); //DIN
-	GPIO_PinModeSet(gpioPortD, 1, gpioModePushPull, 0); //PROGRAM
-	GPIO_PinModeSet(gpioPortD, 2, gpioModePushPull, 0); //CLK
+	GPIO_PinModeSet(clkPort, clkPin, gpioModePushPull, 0); //CLK
+	GPIO_PinModeSet(dinPort, dinPin, gpioModePushPull, 0); //DIN
 
-	/* Configure PD3-4 as input with filter*/
-	GPIO_PinModeSet(gpioPortD, 3, gpioModeInput, 0); //INIT
-	GPIO_PinModeSet(gpioPortD, 4, gpioModeInput, 0); //DONE
+	GPIO_PinModeSet(gpioPortB, 12, gpioModeInputPullFilter, 1); // DONE
+	GPIO_PinModeSet(gpioPortB, 11, gpioModePushPull, 0); // Program B
+	GPIO_PinModeSet(gpioPortB, 8, gpioModeInputPullFilter, 1); // INIT_B
+
+	// Enable FPGA Oscillator
+	GPIO_PinModeSet(gpioPortF, 12, gpioModePushPull, 0); // Program B
+	GPIO_PinOutSet(gpioPortF, 12);
 
 }
 
- //CPLD Register Addresses:
-
- //WordPtr CPLD_Config_Reg        = 0x29000000;
- //WordPtr CPLD_Program_Reg       = 0x29000002;
- //WordPtr CPLD_Input_Reg         = 0x29000004;
-
-
- //Program Register:
-
- //int CS_Bit     = 0x0004;
- //int Write_Bit      = 0x0002;
- //int Prog_Bit       = 0x0001;
 
 // Filesystem for loading bitfile
 FIL file;
 UINT bytesRead;
-uint16_t buffer[BUFFER_SIZE];
+uint8_t buffer[BUFFER_SIZE];
 
 
 extern void Start_SlaveSerial( ) {
 
 
+	// TODO input file from argument
+	open_file(&file, "binfile/default.bin");
 
-    //----------------------------------------------------------------------
-    //Toggle Program Pin by Toggling Program_OE bit
-    //This is accomplished by writing to the Program Register in the CPLD
-    //
-    //NOTE: The Program_OE bit should be driven high to bring the Virtex
-    //      Program Pin low. Likewise, it should be driven low
-    //      to bring the Virtex Program Pin to High-Z
-    //----------------------------------------------------------------------
-
-    //IOWrite(CPLD_Program_Reg, Prog_Bit); //PROGRAM_OE LOW
-    GPIO_PinOutClear(gpioPortD, 1);
+	int init_b = 0;
+    int i = 0;
+    uint8_t byte;
 
 
-    //----------------------------------------------------------------------
-    //Bring Program High-Z
-    //(Drive Program_OE bit low to bring Virtex Program Pin to High-Z
-    //----------------------------------------------------------------------
+	// Set program_b high until init_b is high
+	GPIO_PinOutSet(gpioPortB, 11);
+	while(init_b == 0) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
 
-    //Program_OE bit Low brings the Virtex Program Pin to High Z:
-    //IOWrite(CPLD_Program_Reg, 0x0000);
-    GPIO_PinOutSet(gpioPortD, 1);
+	// Set program_b to low until init_b is low
+	GPIO_PinOutClear(gpioPortB, 11);
+	while (!(init_b == 0)) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
 
+	// Set program_b back to high and wait for init_b is high
+	GPIO_PinOutSet(gpioPortB, 11);
+	while(init_b == 0) {
+		init_b = GPIO_PinInGet(gpioPortB, 8);
+	}
 
-    open_file(&file, "tutorial.bin");
-    //int buffId = 0;
     while (1) {
     	read_file(&file, buffer, BYTES_TO_READ, &bytesRead);
     	if (bytesRead == 0) break;
-    	SlaveSerial(buffer);
-    	//buffId++;
-    	//BSP_LedsSet(buffId);
+    	i++;
+
+    	// Go through all bytes in the buffer
+    	for (int j=0; j<bytesRead; j++) {
+    		// Clear clk and data
+    		byte = buffer[j];
+
+    		// Optimize for sparse files. Set data bit once and clock 8 times
+    		if (byte == 0x0) {
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+    			GPIO->P[gpioPortD].DOUTSET = 0x0;
+
+    			// 7
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 6
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 5
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 4
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 3
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 2
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 1
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+    			GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+
+    			// 0
+    			GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+    		} else {
+				// Send out bit 7
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>7)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>6)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>5)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>4)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>3)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>2)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>1)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+
+				GPIO->P[gpioPortD].DOUTCLR = 0xffff;
+				GPIO->P[gpioPortD].DOUTSET = (byte>>0)&1;
+				GPIO->P[gpioPortD].DOUTSET = 0x4;
+    		}
+    	}
     }
 
-    //----------------------------------------------------------------------
-    // SlaveSerial()
-    //----------------------------------------------------------------------
-
-    //SlaveSerial(flash_start_addr, flash_end_addr);
+    GPIO->P[gpioPortD].DOUTCLR = 0xffff;
 
 
-    //----------------------------------------------------------------------
-    // Monitor the DONE bit in the CPLD Input Register to see if
-    // configuration successful
-    //----------------------------------------------------------------------
+    // Set data to 1
+    GPIO_PinOutSet(dinPort, dinPin);
 
-    Check_DONE_Bit();
-
-}
+    // Add extra clock cycles until done and init is high
+    int done = 0;
 
 
-void SlaveSerial(uint16_t buffer[]) {
-	uint16_t Data16;
+    init_b = GPIO_PinInGet(gpioPortB, 8);
 
-
-
-
-
-    //----------------------------------------------------------------------
-    //Check for /INIT after Program is High Z:
-    //----------------------------------------------------------------------
-
-
-    Data16 = 0;  //Initialize Data16 variable before entering While Loop
-    /*
-    while(Data16 == 0) {
-        //Data16 = IORead(CPLD_Input_Reg);    //Read Input Register
-        Data16 = GPIO_PinInGet(gpioPortD, 3); //Read INIT
-        Data16 = Data16 & 0x0001;           //Check Status of /INIT
-    }
-    */
-
-
-    //----------------------------------------------------------------------
-    //Begin Slave-Serial Configuration
-    //----------------------------------------------------------------------
-
-    int i;
-    for (i = 0; i < bytesRead; i++) {
-    	Data16 = buffer[i];
-    	BSP_LedsSet(Data16);
-    	ShiftDataOut(Data16);
+    while(done == 0 && init_b == 1) {
+    	GPIO_PinOutClear(clkPort, clkPin);
+    	done = GPIO_PinInGet(gpioPortB,12);
+    	init_b = GPIO_PinInGet(gpioPortB, 8);
+    	GPIO_PinOutSet(clkPort, clkPin);
     }
 
-
-
-}
-
-
-void ShiftDataOut(uint16_t Data16) {
-
-	uint8_t DataOut;
-    //Word SCLK_LOW;
-    //Word SCLK_HIGH;
-
-    //SCLK_LOW  = 0x0000;
-    //SCLK_HIGH = 0x0002;
-
-/*
-	DIN PD0
-	PROGRAM PD1
-	CLK PD2
-	INIT PD3
-    DONE PD4?
-*/
-
-    //Upper Byte:
-
-    DataOut = (Data16 & 0x0100) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //1st bit
-    if (DataOut == 1) {
-    	GPIO_PinOutSet(gpioPortD, 0); //1st bit
-    }
-    GPIO_PinOutClear(gpioPortD, 2); //CLK low
-    GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0200) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //2nd bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //2nd bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0400) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //3rd bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //3rd bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0800) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //4th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //4th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x1000) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //5th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //5th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x2000) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //6th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //6th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x4000) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //7th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //7th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x8000) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //8th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //8th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-// --  Lower Byte:
-
-    DataOut = (Data16 & 0x0001) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //9th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //9th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0002) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //10th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //10th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0004) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //11th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //11th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0008) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //12th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //12th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0010) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //13th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //13th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0020) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //14th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //14th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0040) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //15th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //15th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-
-    DataOut = (Data16 & 0x0080) ? 1 : 0;
-    GPIO_PinOutClear(gpioPortD, 0); //16th bit
-	if (DataOut == 1) {
-		GPIO_PinOutSet(gpioPortD, 0); //16th bit
-	}
-	GPIO_PinOutClear(gpioPortD, 2); //CLK low
-	GPIO_PinOutSet(gpioPortD, 2); //CLK high
-
-}
-
-
-void Check_DONE_Bit(void) {
-
-	//uint16_t Data16;
-    uint8_t Done;
-    uint8_t Init;
-    uint8_t ExtraCclk;
-
-    Done = 0;
-    Init = 1;
-
-    while ( (Done==0) && (Init==1) ) {
-
-    	//Apply additional CCLK pulse until DONE=1
-        //IOWrite(CPLD_Config_Reg, 0x0001 );  //CCLK=0, DATA=1
-        //IOWrite(CPLD_Config_Reg, 0x0003 );  //CCLK=1, DATA=1
-    	GPIO_PinOutClear(gpioPortD, 0); //Clear DIN, for safety
-        GPIO_PinOutSet(gpioPortD, 0); //DATA = 1
-        GPIO_PinOutClear(gpioPortD, 2); //CLK = 0
-        GPIO_PinOutSet(gpioPortD, 2); //CLK = 1
-
-        //Read CPLD Input Register:
-        //Data16 = IORead(CPLD_Input_Reg);
-
-        //Check the DONE bit of the CPLD Input Register:
-        //Done = (Data16 & 0x0002) ? 1 : 0;
-        Done = GPIO_PinInGet(gpioPortD, 4);
-
-        //Check the INIT bit of the CPLD Input Register
-        //Init = (Data16 & 0x0001) ? 1 : 0;
-        Init = GPIO_PinInGet(gpioPortD, 3);
-        //Note: FPGA user design should drive INIT High or make INIT HIGHZ
-        //      to ensure no false INIT error detected by this code.
-
+    // Add extra clock cycles
+    for (i=0; i<8; i++) {
+    	GPIO_PinOutClear(clkPort, clkPin);
+    	GPIO_PinOutSet(clkPort, clkPin);
     }
 
-    if (Done == 1) {                     //If DONE Pin is High, display message
-        for (ExtraCclk = 0; ExtraCclk < 8; ExtraCclk++) {
-            //Apply additional CCLK pulse to ensure end-of-startup
-            //IOWrite(CPLD_Config_Reg, 0x0001 );  //CCLK=0, DATA=1
-            //IOWrite(CPLD_Config_Reg, 0x0003 );  //CCLK=1, DATA=1
-        	GPIO_PinOutClear(gpioPortD, 0); //Clear DIN, for safety
-            GPIO_PinOutSet(gpioPortD, 0); //DATA = 1
-			GPIO_PinOutClear(gpioPortD, 2); //CLK = 0
-			GPIO_PinOutSet(gpioPortD, 2); //CLK = 1
-            //Note:  FPGA user design should keep CCLK and DATA HIGHZ to avoid
-            //       conflict with this code.
-        }
-        //FrmAlert (resAlertIDSuccess);   //"Successful! DONE is High!"
-    }
-    else {//Done==0 and Init==0
-        //FrmAlert (resAlertIDFailed_and_InitLow);    //"Configuration Failed", DONE is Low, Init is Low"
-    }
+    // Close file
+    close_file(&file);
+
 }
