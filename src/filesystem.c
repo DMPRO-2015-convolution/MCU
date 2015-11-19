@@ -5,13 +5,10 @@
 #include <string.h>
 
 
-
-
 FIL fsrc;			// File object
 FATFS fatfs;		// File system specific
 FRESULT fres;		// FAT common result
 DSTATUS resCard;	// SD card status
-
 
 
 DWORD get_fattime(void)
