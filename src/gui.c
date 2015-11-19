@@ -5,22 +5,25 @@
 #include <string.h>
 #include "ebi.h"
 #include "fpgaflash.h"
+#include "image.h"
 
 // Screen size
 #define SCREEN_W 640
 #define SCREEN_H 480
-
-// Option choices
-#define OPTION_COUNT FILE_COUNT
-#define OPTION_NAME_LENGTH FILENAME_LENGTH
-#define PAD_LENGTH (SCREEN_W - CHAR_H * OPTION_NAME_LENGTH)/2
-
 
 
 // Offset of the GUI window
 #define GUI_OFFSET_X 100
 #define GUI_OFFSET_Y 100
 #define GUI_SIZE 1
+
+// Option choices
+#define OPTION_COUNT FILE_COUNT
+#define OPTION_NAME_LENGTH FILENAME_LENGTH
+#define PAD_LENGTH (SCREEN_W - CHAR_H * OPTION_NAME_LENGTH * GUI_SIZE)/2
+
+
+
 
 // Colors
 #define BACKGROUND_COLOR {0,0,0}
@@ -34,6 +37,7 @@
 #define MAIN_MENU_MAP 2
 #define MAIN_MENU_REDUCE 3
 #define MAIN_MENU_IMAGE_SOURCE 4
+#define MAIN_MENU_IMAGE 5
 
 #define MAIN_MENU_COUNT 5
 
@@ -63,12 +67,14 @@ kernel_t currentKernel;
 uint16_t currentMap;
 uint16_t currentReduce;
 uint16_t currentImageSource;
+char currentImage[OPTION_NAME_LENGTH];
 
 // Default settings
 kernel_t defaultKernel;
 uint16_t defaultMap;
 uint16_t defaultReduce;
 uint16_t defaultImageSource;
+char defaultImage[OPTION_NAME_LENGTH];
 
 
 void init_gui() {
@@ -90,6 +96,9 @@ void init_gui() {
 
 	defaultImageSource = 0x0;
 	currentImageSource = 0x0;
+
+	strcpy(defaultImage, "image/default.ppm");
+	strcpy(currentImage, "image/default.ppm");
 
 }
 
@@ -126,9 +135,18 @@ void configure_processor() {
 void exit_gui() {
 	currentState = IDLE;
 	configure_processor();
+
+	// Start sending image
+	if (currentImageSource == IMAGE_SOURCE_SD) {
+		image_send_start(currentImage);
+	}
 }
 
 void display_main_menu() {
+
+	// Wait until image is sent
+	while(image_get_state() != IMAGE_IDLE);
+
 
 	currentState = MAIN_MENU;
 
@@ -147,6 +165,21 @@ void select_main_menu() {
 	switch(currentSelection) {
 	case MAIN_MENU_KERNEL:
 		display_kernel_menu();
+		break;
+	case MAIN_MENU_FPGA:
+		display_fpga_menu();
+		break;
+	case MAIN_MENU_MAP:
+		display_map_menu();
+		break;
+	case MAIN_MENU_REDUCE:
+		display_reduce_menu();
+		break;
+	case MAIN_MENU_IMAGE_SOURCE:
+		display_image_source_menu();
+		break;
+	case MAIN_MENU_IMAGE:
+		display_image_menu();
 		break;
 	default:
 		break;
@@ -180,26 +213,29 @@ void select_fpga() {
 }
 
 
-void display_map() {
+void display_map_menu() {
 	currentState = MAP_MENU;
 	draw_menu();
 }
 
+// TODO
 void select_map() {
 	exit_gui();
 }
 
-void display_reduce() {
+void display_reduce_menu() {
 	currentState = REDUCE_MENU;
 	draw_menu();
 }
 
+// TODO
 void select_reduce() {
 	exit_gui();
 }
 
-void display_image_source() {
+void display_image_source_menu() {
 	currentState = IMAGE_SOURCE_MENU;
+
 	strcpy(options[IMAGE_SOURCE_SD], "MicroSD Card");
 	strcpy(options[IMAGE_SOURCE_CAM], "Camera");
 	optionCount = IMAGE_SOURCE_COUNT;
@@ -219,7 +255,16 @@ void select_image_source() {
 	}
 }
 
+void display_image_menu() {
+	currentState = IMAGE_MENU;
+	get_filenames("./image", options, &optionCount);
+	draw_menu();
+}
 
+void select_image() {
+	char *imageName = options[currentSelection];
+	exit_gui();
+}
 
 
 void draw_menu() {
@@ -273,13 +318,13 @@ void draw_menu() {
 		for (int y=0; y < CHAR_H; y++) {
 
 			// Write left padding
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, 200*sizeof(color_t)/sizeof(uint16_t));
+			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
 
 			// Wrtie image buffer
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, imageBuffer, OPTION_NAME_LENGTH*CHAR_H*sizeof(color_t)/sizeof(uint16_t));
+			ebi_write_buffer(EBI_IMAGE_STREAM_START, imageBuffer, OPTION_NAME_LENGTH*CHAR_H*GUI_SIZE*sizeof(color_t)/sizeof(uint16_t));
 
 			// Write right  padding
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, 200*sizeof(color_t)/sizeof(uint16_t));
+			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
 		}
 	}
 }
@@ -337,6 +382,9 @@ void on_button_pressed(button_t button) {
 				break;
 			case IMAGE_SOURCE_MENU:
 				select_image_source();
+				break;
+			case IMAGE_MENU:
+				select_image();
 				break;
 			default:
 				break;
