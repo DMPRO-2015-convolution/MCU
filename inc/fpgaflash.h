@@ -18,4 +18,13 @@ extern void slave_serial(char *binFilename);
 #define FPGA_CSPIN           3
 #define FPGA_CLKPIN          2
 
+
+#define FPGA_STATUS_PORT gpioPortB
+#define FPGA_INIT_B_PIN 8
+#define FPGA_PROGRAM_B_PIN 11
+#define FPGA_DONE_PIN 12
+
+#define FPGA_OSCILLATOR_PORT gpioPortF
+#define FPGA_OSCILLATOR_PIN 12
+
 #endif

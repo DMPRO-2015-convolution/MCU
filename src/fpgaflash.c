@@ -7,33 +7,22 @@
 #define BYTES_TO_READ BUFFER_SIZE
 
 
-const int clkPort = gpioPortD;
-const int clkPin = 2;
-const int dinPort = gpioPortD;
-const int dinPin = 0;
-
-
 extern void init_fpgaflash() {
 
 	/* Enable clock for GPIO module */
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
-	/* Configure PD0-2 as push pull output */
-	GPIO_PinModeSet(clkPort, clkPin, gpioModePushPull, 0); //CLK
-	GPIO_PinModeSet(dinPort, dinPin, gpioModePushPull, 0); //DIN
-
-	GPIO_PinModeSet(gpioPortB, 12, gpioModeInputPullFilter, 1); // DONE
-	GPIO_PinModeSet(gpioPortB, 11, gpioModePushPull, 0); // Program B
-	GPIO_PinModeSet(gpioPortB, 8, gpioModeInputPullFilter, 1); // INIT_B
+	GPIO_PinModeSet(FPGA_STATUS_PORT, FPGA_DONE_PIN, gpioModeInputPullFilter, 1);
+	GPIO_PinModeSet(FPGA_STATUS_PORT, FPGA_PROGRAM_B_PIN, gpioModePushPull, 0);
+	GPIO_PinModeSet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN, gpioModeInputPullFilter, 1);
 
 	// Enable FPGA Oscillator
-	GPIO_PinModeSet(gpioPortF, 12, gpioModePushPull, 0); // Program B
-	GPIO_PinOutSet(gpioPortF, 12);
+	GPIO_PinModeSet(FPGA_OSCILLATOR_PORT, FPGA_OSCILLATOR_PIN, gpioModePushPull, 0);
+	GPIO_PinOutSet(FPGA_OSCILLATOR_PORT, FPGA_OSCILLATOR_PIN);
 
 
 	/* Enabling clock to USART 0 */
 	CMU_ClockEnable(FPGA_CMUCLOCK, true);
-	CMU_ClockEnable(cmuClock_GPIO, true);
 
 	/* Initialize USART in SPI master mode. */
 	USART_InitSync_TypeDef init = USART_INITSYNC_DEFAULT;
@@ -70,21 +59,21 @@ extern void slave_serial(char *binFilename) {
 
 
 	// Set program_b high until init_b is high
-	GPIO_PinOutSet(gpioPortB, 11);
+	GPIO_PinOutSet(FPGA_STATUS_PORT, FPGA_PROGRAM_B_PIN);
 	while(init_b == 0) {
-		init_b = GPIO_PinInGet(gpioPortB, 8);
+		init_b = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN);
 	}
 
 	// Set program_b to low until init_b is low
-	GPIO_PinOutClear(gpioPortB, 11);
+	GPIO_PinOutClear(FPGA_STATUS_PORT, FPGA_PROGRAM_B_PIN);
 	while (!(init_b == 0)) {
-		init_b = GPIO_PinInGet(gpioPortB, 8);
+		init_b = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN);
 	}
 
 	// Set program_b back to high and wait for init_b is high
-	GPIO_PinOutSet(gpioPortB, 11);
+	GPIO_PinOutSet(FPGA_STATUS_PORT, FPGA_PROGRAM_B_PIN);
 	while(init_b == 0) {
-		init_b = GPIO_PinInGet(gpioPortB, 8);
+		init_b = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN);
 	}
 
 	/* Clear send and receive buffers. */
@@ -111,25 +100,25 @@ extern void slave_serial(char *binFilename) {
 
 
     // Set data to 1
-    GPIO_PinOutSet(dinPort, dinPin);
+    GPIO_PinOutSet(FPGA_GPIOPORT, FPGA_MOSIPIN);
 
     // Add extra clock cycles until done and init is high
     int done = 0;
 
 
-    init_b = GPIO_PinInGet(gpioPortB, 8);
+    init_b = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN);
 
     while(done == 0 && init_b == 1) {
-    	GPIO_PinOutClear(clkPort, clkPin);
-    	done = GPIO_PinInGet(gpioPortB,12);
-    	init_b = GPIO_PinInGet(gpioPortB, 8);
-    	GPIO_PinOutSet(clkPort, clkPin);
+    	GPIO_PinOutClear(FPGA_GPIOPORT, FPGA_CLKPIN);
+    	done = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_DONE_PIN);
+    	init_b = GPIO_PinInGet(FPGA_STATUS_PORT, FPGA_INIT_B_PIN);
+    	GPIO_PinOutSet(FPGA_GPIOPORT, FPGA_CLKPIN);
     }
 
     // Add extra clock cycles
     for (i=0; i<8; i++) {
-    	GPIO_PinOutClear(clkPort, clkPin);
-    	GPIO_PinOutSet(clkPort, clkPin);
+    	GPIO_PinOutClear(FPGA_GPIOPORT, FPGA_CLKPIN);
+    	GPIO_PinOutSet(FPGA_GPIOPORT, FPGA_CLKPIN);
     }
 
     // Close file
