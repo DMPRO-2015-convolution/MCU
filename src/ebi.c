@@ -185,6 +185,15 @@ extern void ebi_write_buffer(int offset, uint16_t *buffer, int size) {
 }
 
 
+// Write zero values to pad images
+extern void ebi_write_pad(int offset, uint32_t n) {
+	uint16_t *addr = (uint16_t *)(BANK1_BASE_ADDR + (offset << 1));
+	for (int i=0; i < n; i++) {
+		*(addr+i) = 0;
+	}
+}
+
+
 
 
 

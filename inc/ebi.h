@@ -32,5 +32,6 @@ extern void init_ebi();
 extern void ebi_write(int address, uint16_t value);
 extern uint16_t ebi_read(int address);
 extern void ebi_write_buffer(int offset, uint16_t *buffer, int size);
+extern void ebi_write_pad(int offset, uint32_t n);
 
 #endif

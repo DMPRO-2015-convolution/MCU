@@ -46,6 +46,27 @@
 #define IMAGE_SOURCE_CAM 1
 #define IMAGE_SOURCE_COUNT 2
 
+
+
+// Function prototypes
+void display_main_menu();
+void display_kernel_menu();
+void display_fpga_menu();
+void display_map_menu();
+void display_reduce_menu();
+void display_image_source_menu();
+void display_image_menu();
+void select_main_menu();
+void select_kernel();
+void select_fpga();
+void select_map();
+void select_reduce();
+void select_image_source();
+void select_image();
+void draw_menu();
+
+
+
 //
 // Variables
 //
@@ -144,7 +165,10 @@ void exit_gui() {
 
 void display_main_menu() {
 
-	// Wait until image is sent
+
+
+	// Stop image stream and wait until image is sent
+	image_send_stop();
 	while(image_get_state() != IMAGE_IDLE);
 
 
@@ -262,7 +286,7 @@ void display_image_menu() {
 }
 
 void select_image() {
-	char *imageName = options[currentSelection];
+	strcpy(currentImage, options[currentSelection]);
 	exit_gui();
 }
 
@@ -285,6 +309,12 @@ void draw_menu() {
 	color_t padBuffer[PAD_LENGTH];
 	memset(padBuffer,0,PAD_LENGTH*sizeof(color_t));
 
+
+
+	// Write padBuffer until we reach the gui start
+	ebi_write_pad(EBI_IMAGE_STREAM_START, SCREEN_W*GUI_OFFSET_Y*sizeof(color_t)/sizeof(uint16_t));
+
+
 	// Go through choices and create image stream
 	for (int i=0; i < optionCount; i++) {
 
@@ -303,14 +333,16 @@ void draw_menu() {
 		uint8_t byte;
 		for (int j=0; j < pbmBufferSize; j++) {
 			byte = pbmBuffer[j];
-			imageBuffer[CHAR_H*j + 0] = (byte&(1<<7)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 1] = (byte&(1<<6)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 2] = (byte&(1<<5)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 3] = (byte&(1<<4)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 4] = (byte&(1<<3)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 5] = (byte&(1<<2)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 6] = (byte&(1<<1)) ? fontColor : backColor;
-			imageBuffer[CHAR_H*j + 7] = (byte&(1<<0)) ? fontColor : backColor;
+			for (int gi=0; gi < GUI_SIZE; gi++) {
+				imageBuffer[CHAR_H*j*GUI_SIZE + 0*GUI_SIZE + gi] = (byte&(1<<7)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 1*GUI_SIZE + gi] = (byte&(1<<6)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 2*GUI_SIZE + gi] = (byte&(1<<5)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 3*GUI_SIZE + gi] = (byte&(1<<4)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 4*GUI_SIZE + gi] = (byte&(1<<3)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 5*GUI_SIZE + gi] = (byte&(1<<2)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 6*GUI_SIZE + gi] = (byte&(1<<1)) ? fontColor : backColor;
+				imageBuffer[CHAR_H*j*GUI_SIZE + 7*GUI_SIZE + gi] = (byte&(1<<0)) ? fontColor : backColor;
+			}
 		}
 
 
@@ -318,15 +350,21 @@ void draw_menu() {
 		for (int y=0; y < CHAR_H; y++) {
 
 			// Write left padding
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
+			//ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
+			ebi_write_pad(EBI_IMAGE_STREAM_START, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
 
 			// Wrtie image buffer
 			ebi_write_buffer(EBI_IMAGE_STREAM_START, imageBuffer, OPTION_NAME_LENGTH*CHAR_H*GUI_SIZE*sizeof(color_t)/sizeof(uint16_t));
 
 			// Write right  padding
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
+			//ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
+			ebi_write_pad(EBI_IMAGE_STREAM_START, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
 		}
 	}
+
+	// Write padding until end of screen
+	ebi_write_pad(EBI_IMAGE_STREAM_START, (SCREEN_W*SCREEN_H - SCREEN_W*GUI_OFFSET_Y - SCREEN_W*optionCount*CHAR_H) * sizeof(color_t)/sizeof(uint16_t));
+
 }
 
 int is_idle() {
