@@ -5,10 +5,6 @@
 #include <string.h>
 
 
-#define BUFFER_SIZE 1024
-#define FILENAME "test.bit"
-
-
 
 
 FIL fsrc;			// File object
@@ -89,7 +85,6 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 	FILINFO fno;
 	DIR dir;
 	int i = 0;
-	char *fn;
 
 	res = f_opendir(&dir, path);
 	if (res == FR_OK) {
@@ -100,9 +95,6 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 				break;
 			}
 			if (fno.fname[0] == '.') continue;
-
-
-			//strcpy(strings[i], fno.fname);
 
 			// Save full path
 			strcpy(strings[i], path+2);

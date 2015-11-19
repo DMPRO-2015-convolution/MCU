@@ -15,7 +15,7 @@
 #define EBI_KERNEL_ELEMENT 0x00101
 
 
-// TODO Assign proper address for map
+// TODO Assign proper address for map, reduce and image source
 #define EBI_MAP 0x1
 #define EBI_REDUCE 0x2
 #define EBI_IMAGE_SOURCE 0x3
@@ -31,5 +31,6 @@
 extern void init_ebi();
 extern void ebi_write(int address, uint16_t value);
 extern uint16_t ebi_read(int address);
+extern void ebi_write_buffer(int offset, uint16_t *buffer, int size);
 
 #endif
