@@ -30,8 +30,8 @@ extern void get_filenames(char *path, char strings[FILE_COUNT][FILENAME_LENGTH],
 #define MAX_KERNEL_SIZE 49
 
 typedef struct {
-	uint16_t size;
-	int16_t elements[MAX_KERNEL_SIZE];
+	uint8_t size;
+	int8_t elements[MAX_KERNEL_SIZE];
 } kernel_t;
 
 extern void load_kernel(char *filename, kernel_t *kernel);
