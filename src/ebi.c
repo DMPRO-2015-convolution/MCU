@@ -2,7 +2,7 @@
 #include "em_ebi.h"
 #include "em_gpio.h"
 #include "em_cmu.h"
-
+#include "filesystem.h"
 #include "gui.h"
 
 
@@ -19,8 +19,6 @@ extern void init_ebi() {
     CMU_ClockEnable(cmuClock_GPIO, true);
 
     //CMU_HFRCOBandSet(cmuHFRCOBand_28MHz);
-
-    /* Giant or Leopard family. */
 
     /* --- Configure GPIO pins as push pull -------------------- */
 
@@ -89,14 +87,14 @@ extern void init_ebi() {
 
 
     /* --------------------------------------------------------- */
-
-    /* First bank needs a name, Bank 0, Base Address 0x80000000  */
+    /* SRAM, Bank 0, Base Address 0x80000000                     */
     /* --------------------------------------------------------- */
     ebiConfig.banks       = EBI_BANK0;
     ebiConfig.csLines     = EBI_CS0;
     ebiConfig.mode        = ebiModeD16;
     ebiConfig.alePolarity = ebiActiveHigh;
     ebiConfig.location    = ebiLocation1;
+
     /* keep blEnable */
     ebiConfig.blEnable     = false;
     ebiConfig.addrHalfALE  = false;
@@ -108,8 +106,8 @@ extern void init_ebi() {
     ebiConfig.aHigh = ebiAHighA19;
 
     /* Address Setup and hold time */
-    ebiConfig.addrHoldCycles  = 255;
-    ebiConfig.addrSetupCycles = 255;
+    ebiConfig.addrHoldCycles  = 0;
+    ebiConfig.addrSetupCycles = 0;
 
 
     /* Read cycle times */
@@ -118,16 +116,16 @@ extern void init_ebi() {
     ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
-    ebiConfig.writeStrobeCycles = 255;
-    ebiConfig.writeHoldCycles   = 255;
-    ebiConfig.writeSetupCycles  = 255;
+    ebiConfig.writeStrobeCycles = 1;
+    ebiConfig.writeHoldCycles   = 1;
+    ebiConfig.writeSetupCycles  = 0;
 
     /* Configure EBI bank 0 */
     EBI_Init(&ebiConfig);
 
 
     /* --------------------------------------------------------- */
-    /* Second bank needs a name, Bank 1, Base Address 0x84000000 */
+    /* Processor communication, Bank 1, Base Address 0x84000000  */
     /* --------------------------------------------------------- */
     ebiConfig.banks       = EBI_BANK1;
     ebiConfig.csLines     = EBI_CS1;
@@ -142,16 +140,16 @@ extern void init_ebi() {
 
     /* keep alow/ahigh configuration */
     ebiConfig.aLow = ebiALowA0;
-    ebiConfig.aHigh = ebiAHighA18;
+    ebiConfig.aHigh = ebiAHighA19;
 
     /* Address Setup and hold time */
     ebiConfig.addrHoldCycles  = 0;
     ebiConfig.addrSetupCycles = 0;
 
     /* Read cycle times */
-    ebiConfig.readStrobeCycles = 255;
-    ebiConfig.readHoldCycles   = 255;
-    ebiConfig.readSetupCycles  = 255;
+    ebiConfig.readStrobeCycles = 7;
+    ebiConfig.readHoldCycles   = 3;
+    ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
     ebiConfig.writeSetupCycles  = 1;
@@ -167,6 +165,73 @@ extern void init_ebi() {
 
 }
 
+
+extern void sram_write(int address, uint16_t value) {
+	*(uint16_t *)(SRAM_BASE_ADDR + (address << 1)) = value;
+}
+
+extern void sram_write_buffer(int offset, uint16_t *buffer, uint16_t size) {
+	for (int i=0; i<size; i++) {
+		*(uint16_t *)(SRAM_BASE_ADDR + ((offset + i) << 1)) = buffer[i];
+	}
+}
+
+extern uint16_t sram_read(int address) {
+	return *(volatile uint16_t*)(SRAM_BASE_ADDR + (address << 1));
+}
+
+extern void ebi_reset_processor() {
+	*(uint16_t *)(DAISY_BASE_ADDR + (2<<1)) = 0xff;
+}
+
+extern void ebi_write_data_stream(uint16_t value) {
+	*(uint16_t *)(DAISY_BASE_ADDR) = value;
+}
+
+extern void ebi_configure_map_reduce(uint8_t map, uint8_t reduce) {
+
+	// 24 bit should be sent 10 times, means 15 16 bit transfers (10*24/16=15)
+
+	uint8_t instrBuffer[10*3] = {0};
+	for (int i=0; i<10; i++) {
+		instrBuffer[i*3+1] = reduce;
+		instrBuffer[i*3+2] = map;
+	}
+
+	uint16_t *ebiBuffer = (uint16_t*)instrBuffer;
+
+	for (int i=0; i < 15; i++) {
+		*(uint16_t*)(DAISY_BASE_ADDR) = ebiBuffer[i];
+	}
+}
+
+extern void ebi_configure_kernel(kernel_t kernel) {
+	// Assuming 3x3 kernel
+
+	// We have only 9 values, but need 10 to pipe through everything
+	uint8_t kernelBuffer[10*3] = {0};
+
+	// Kernel is loaded in the following way
+	//
+	// 6 | 7 | 8
+	// 3 | 4 | 5
+	// 0 | 1 | 2
+	//
+	for (int i=0; i<9; i++) {
+		kernelBuffer[i*3] = kernel.elements[6-(i/3)*3+i%3];
+	}
+
+	uint16_t *ebiBuffer = (uint16_t*)kernelBuffer;
+
+	for (int i=0; i < 15; i++) {
+		*(uint16_t*)(DAISY_BASE_ADDR) = ebiBuffer[i];
+	}
+
+}
+
+extern void ebi_set_ebi_mode(uint16_t mode) {
+	*(uint16_t*)(BANK1_BASE_ADDR + (1<<1)) = mode;
+}
 
 extern void ebi_write(int address, uint16_t value) {
 	*(uint16_t *)(BANK1_BASE_ADDR + (address << 1)) = value;
@@ -192,74 +257,5 @@ extern void ebi_write_pad(int offset, uint32_t n) {
 		*(addr+i) = 0;
 	}
 }
-
-
-
-
-
-
-
-/*
- *
- * --- CURRENTLY NOT WORKING
- *
- * Writes a buffer of an arbitrary amount of bytes.
- * If the buffer is not divisible by 16 the remaining byte is sent on the next function call
- */
-uint16_t prevValue = 0;
-int wasDivisible = 1;
-
-extern void ebi_buffer_write(int offset, uint8_t *inBuffer, int size) {
-
-	uint16_t *addr = (uint16_t*)(BANK1_BASE_ADDR + (offset << 1));
-	uint16_t *ebiBuffer;
-
-	int size8;
-	int size16;
-
-	// Check if the last write has an unsent byte
-	if (wasDivisible) {
-		ebiBuffer = (uint16_t*)inBuffer;
-	} else {
-		// Put out first value
-		*addr = (prevValue << 7)&(uint16_t)(inBuffer[0]);
-		addr++;
-		ebiBuffer = (uint16_t*)(inBuffer+1);
-		size8 = size - 1;
-		size16 = (size8)/2;
-	}
-
-
-	// Send out 16 bit data
-	for (int i=0; i < size16; i++) {
-		*addr = ebiBuffer[i];
-		addr++;
-	}
-
-
-	// Check if the sent data was divisible
-	if (size8%2) {
-		wasDivisible = 1;
-	} else {
-		prevValue = inBuffer[size];
-		wasDivisible = 0;
-	}
-}
-
-extern void flush_ebi_buffer(int offset) {
-	uint16_t *addr = (uint16_t*)(BANK1_BASE_ADDR + (offset << 1));
-	*addr = ((uint16_t)prevValue)<<7;
-	reset_ebi_buffer();
-}
-
-extern void reset_ebi_buffer() {
-	prevValue = 0;
-	wasDivisible = 1;
-}
-
-
-
-
-
 
 

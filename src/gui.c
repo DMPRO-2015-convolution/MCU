@@ -85,15 +85,15 @@ int optionCount;
 kernel_t currentKernel;
 
 // Map and reduce settings
-uint16_t currentMap;
-uint16_t currentReduce;
+uint8_t currentMap;
+uint8_t currentReduce;
 uint16_t currentImageSource;
 char currentImage[OPTION_NAME_LENGTH];
 
 // Default settings
 kernel_t defaultKernel;
-uint16_t defaultMap;
-uint16_t defaultReduce;
+uint8_t defaultMap;
+uint8_t defaultReduce;
 uint16_t defaultImageSource;
 char defaultImage[OPTION_NAME_LENGTH];
 
@@ -109,11 +109,11 @@ void init_gui() {
 	load_kernel("kernel/gauss.krn", &defaultKernel);
 	load_kernel("kernel/gauss.krn", &currentKernel);
 
-	defaultMap = 0x0;
-	currentMap = 0x0;
+	defaultMap = MAP_MUL;
+	currentMap = MAP_MUL;
 
-	currentReduce = 0x0;
-	defaultReduce = 0x0;
+	currentReduce = REDUCE_ADD;
+	defaultReduce = REDUCE_ADD;
 
 	defaultImageSource = 0x0;
 	currentImageSource = 0x0;
@@ -123,44 +123,25 @@ void init_gui() {
 
 }
 
-void reset_processor() {
-	// Send kernel
-	ebi_write_buffer(EBI_KERNEL_START, &defaultKernel, sizeof(kernel_t));
-
-	// Send map
-	ebi_write(EBI_MAP, defaultMap);
-
-	// Send reduce
-	ebi_write(EBI_REDUCE, defaultReduce);
-
-	// Send image source
-	ebi_write(EBI_IMAGE_SOURCE, defaultImageSource);
-}
-
 
 void configure_processor() {
-	// Send kernel
-	ebi_write_buffer(EBI_KERNEL_START, &currentKernel, sizeof(kernel_t));
-
-	// Send map
-	ebi_write(EBI_MAP, currentMap);
-
-	// Send reduce
-	ebi_write(EBI_REDUCE, currentReduce);
-
-	// Send image source
-	ebi_write(EBI_IMAGE_SOURCE, currentImageSource);
+	ebi_reset_processor();
+	ebi_configure_map_reduce(currentMap, currentReduce);
+	ebi_configure_kernel(currentKernel);
 }
 
 
 void exit_gui() {
 	currentState = IDLE;
+
+	ebi_set_ebi_mode(EBI_MODE_OFF);
+
 	configure_processor();
 
 	// Start sending image
-	if (currentImageSource == IMAGE_SOURCE_SD) {
-		image_send_start(currentImage);
-	}
+	//if (currentImageSource == IMAGE_SOURCE_SD) {
+	//	image_send_start(currentImage);
+	//}
 }
 
 void display_main_menu() {
@@ -310,11 +291,6 @@ void draw_menu() {
 	memset(padBuffer,0,PAD_LENGTH*sizeof(color_t));
 
 
-
-	// Write padBuffer until we reach the gui start
-	ebi_write_pad(EBI_IMAGE_STREAM_START, SCREEN_W*GUI_OFFSET_Y*sizeof(color_t)/sizeof(uint16_t));
-
-
 	// Go through choices and create image stream
 	for (int i=0; i < optionCount; i++) {
 
@@ -329,6 +305,7 @@ void draw_menu() {
 
 		// Draw font to pbm buffer
 		draw_string_to_buffer(option, strlen(option), pbmBuffer, OPTION_NAME_LENGTH);
+
 		// Fill in imagebuffer
 		uint8_t byte;
 		for (int j=0; j < pbmBufferSize; j++) {
@@ -345,26 +322,11 @@ void draw_menu() {
 			}
 		}
 
-
-		// Write image buffer over EBI
+		// Write image buffer to SRAM
 		for (int y=0; y < CHAR_H; y++) {
-
-			// Write left padding
-			//ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
-			ebi_write_pad(EBI_IMAGE_STREAM_START, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
-
-			// Wrtie image buffer
-			ebi_write_buffer(EBI_IMAGE_STREAM_START, imageBuffer, OPTION_NAME_LENGTH*CHAR_H*GUI_SIZE*sizeof(color_t)/sizeof(uint16_t));
-
-			// Write right  padding
-			//ebi_write_buffer(EBI_IMAGE_STREAM_START, padBuffer, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
-			ebi_write_pad(EBI_IMAGE_STREAM_START, PAD_LENGTH*sizeof(color_t)/sizeof(uint16_t));
+			sram_write_buffer(y*SCREEN_W*sizeof(color_t)/sizeof(uint16_t), imageBuffer, OPTION_NAME_LENGTH*CHAR_H*GUI_SIZE*sizeof(color_t)/sizeof(uint16_t));
 		}
 	}
-
-	// Write padding until end of screen
-	ebi_write_pad(EBI_IMAGE_STREAM_START, (SCREEN_W*SCREEN_H - SCREEN_W*GUI_OFFSET_Y - SCREEN_W*optionCount*CHAR_H) * sizeof(color_t)/sizeof(uint16_t));
-
 }
 
 int is_idle() {
@@ -399,7 +361,7 @@ void on_button_pressed(button_t button) {
 		break;
 	case BTN_OK:
 		if (is_idle()) {
-			reset_processor();
+			ebi_set_ebi_mode(EBI_MODE_ON);
 			display_main_menu();
 		} else {
 			switch(currentState) {
