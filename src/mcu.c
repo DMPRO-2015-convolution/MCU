@@ -91,12 +91,16 @@ int main(void)
 	}
 	*/
 
+	// Initialize image module
+	//init_image();
 
 	// Initialize GUI
-	init_gui();
+	//init_gui();
 
 	// Program fpga with  default binary file
 	slave_serial("binfile/default.bin");
+
+
 
 
 	int numFiles = 0;

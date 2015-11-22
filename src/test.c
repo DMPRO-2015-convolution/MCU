@@ -9,6 +9,9 @@
 #define BANK1_BASE_ADDR 0x84000000
 
 #define NUM_WRITES 512
+#define NUM_READS 512
+#define WRITE_START 0
+#define READ_START 0
 
 extern void test_filesystem() {
 
@@ -22,22 +25,6 @@ extern void test_filesystem() {
 	open_file(&file, "tutorial.bit");
 
 	read_file(&file, buffer, BYTES_TO_READ, &bytesRead);
-
-
-	/*
-	// TEST, write bytes to leds
-	int i;
-	int j;
-	int x;
-	int k = 1000000;
-	for (i = 0; i < bytesRead; i++) {
-		BSP_LedsSet(buffer[i]);
-
-		//Delay
-		for (j = 0; j<k; j++) x++;
-	}*/
-
-
 
 
 	// TEST, read whole file
@@ -87,11 +74,6 @@ extern void test_read_bmp() {
 }
 
 
-extern void test_slaveserial() {
-
-	Start_SlaveSerial();
-
-}
 
 extern void test_ebi() {
 
@@ -156,8 +138,6 @@ extern void test_ebi_buffer() {
 
 extern void test_ebi_read() {
 
-#define NUM_READS 1024
-
 	int values[NUM_READS] = {0};
 
 
@@ -169,6 +149,9 @@ extern void test_ebi_read() {
 	while(1);
 
 }
+
+
+
 
 
 extern void test_read_paths() {
@@ -201,4 +184,38 @@ extern void test_image_to_ebi() {
 
 
 }
+
+
+
+
+void test_sram() {
+
+	uint16_t values[NUM_READS] = {0};
+
+	//while(1);
+
+	// Write data
+	//for (int i=WRITE_START; i<WRITE_START+NUM_WRITES; i++) {
+	//	sram_write(i,i);
+	//}
+
+	while(1) {
+		// Write data
+		//for (int i=WRITE_START; i<WRITE_START+NUM_WRITES; i++) {
+		//	sram_write(i,i);
+		//}
+
+		// Read data
+		for (int i=READ_START; i<READ_START+NUM_READS; i++) {
+			values[i] = sram_read(i);
+		}
+		while(1);
+
+	}
+
+	// Breakpoint
+	while(1);
+}
+
+
 
