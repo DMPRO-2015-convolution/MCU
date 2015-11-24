@@ -106,8 +106,8 @@ extern void init_ebi() {
     ebiConfig.aHigh = ebiAHighA19;
 
     /* Address Setup and hold time */
-    ebiConfig.addrHoldCycles  = 0;
-    ebiConfig.addrSetupCycles = 0;
+    ebiConfig.addrHoldCycles  = 4;
+    ebiConfig.addrSetupCycles = 4;
 
 
     /* Read cycle times */
@@ -116,9 +116,9 @@ extern void init_ebi() {
     ebiConfig.readSetupCycles  = 3;
 
     /* Write cycle times */
-    ebiConfig.writeStrobeCycles = 1;
-    ebiConfig.writeHoldCycles   = 1;
-    ebiConfig.writeSetupCycles  = 0;
+    ebiConfig.writeStrobeCycles = 7;
+    ebiConfig.writeHoldCycles   = 3;
+    ebiConfig.writeSetupCycles  = 3;
 
     /* Configure EBI bank 0 */
     EBI_Init(&ebiConfig);
@@ -166,7 +166,7 @@ extern void init_ebi() {
 }
 
 
-extern void sram_write(int address, uint16_t value) {
+extern void sram_write(uint32_t address, uint16_t value) {
 	*(uint16_t *)(SRAM_BASE_ADDR + (address << 1)) = value;
 }
 

@@ -100,9 +100,10 @@ int main(void)
 	// Program fpga with  default binary file
 	slave_serial("binfile/default.bin");
 
+	//
+	test_send_image();
 
-
-
+	while(1);
 	int numFiles = 0;
 	char strings[FILE_COUNT][FILENAME_LENGTH];
 	get_filenames("./kernel",strings, &numFiles);

@@ -220,21 +220,29 @@ void select_fpga() {
 
 void display_map_menu() {
 	currentState = MAP_MENU;
+	//options[MAP_MUL] = "Multiply";
+	//options[MAP_ADD] = "Addition";
+	//options[MAP_MASK] = "Mask";
+	optionCount = 3;
 	draw_menu();
 }
 
-// TODO
 void select_map() {
+	currentMap = currentSelection;
 	exit_gui();
 }
 
 void display_reduce_menu() {
 	currentState = REDUCE_MENU;
+	//options[REDUCE_ADD] = "Addition";
+	//options[REDUCE_MUL] = "Multiply";
+	//options[REDUCE_MIN] = "Minimum";
+	optionCount = 3;
 	draw_menu();
 }
 
-// TODO
 void select_reduce() {
+	currentReduce = currentSelection;
 	exit_gui();
 }
 

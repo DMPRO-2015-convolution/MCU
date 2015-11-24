@@ -4,7 +4,8 @@
 
 #include <stdint.h>
 
-#define SRAM_BASE_ADDR  0x80000000
+#define SRAM_BASE_ADDR 0x80000000
+
 #define DAISY_BASE_ADDR 0x84000000
 #define BANK1_BASE_ADDR 0x84000000
 

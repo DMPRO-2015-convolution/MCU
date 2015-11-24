@@ -4,7 +4,7 @@
 #include "mcu.h"
 #include "gui.h"
 
-#define BYTES_TO_READ 1024*64
+#define BYTES_TO_READ 1024*8
 #define BANK0_BASE_ADDR 0x80000000
 #define BANK1_BASE_ADDR 0x84000000
 
@@ -185,6 +185,46 @@ extern void test_image_to_ebi() {
 
 }
 
+
+void test_send_image() {
+	FIL file;
+	uint16_t buffer[BYTES_TO_READ];
+	UINT bytesRead;
+
+	//while(1);
+	open_file(&file,"image/daisy.ppm");
+
+
+	// Set ebi mode
+	ebi_set_ebi_mode(1);
+
+	int addr = 0;
+	//while(1) {
+
+	//}
+	while(1) {
+
+		read_file(&file, buffer, BYTES_TO_READ*2, &bytesRead);
+		if (bytesRead == 0) break;
+
+		//sram_write_buffer(addr, buffer, BYTES_TO_READ*2);
+
+		for (int i=0; i<bytesRead/2; i++) {
+			//sram_write(addr+i,buffer[i]);
+			sram_write(addr+i,buffer[i]);
+		}
+		addr += bytesRead/2;
+
+	}
+
+
+	// Write everything
+	//for (int i=0; i<1024; i++) {
+	//	for (uint32_t addr = 0; addr<(2<<19); addr++) {
+	//		sram_write(addr, 0x0);
+	//	}
+	//}
+}
 
 
 
